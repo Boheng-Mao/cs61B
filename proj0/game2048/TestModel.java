@@ -1121,6 +1121,7 @@ public class TestModel extends TestUtils {
                 {0, 0, 4, 8},
                 {0, 0, 0, 8}
         }, totalScore, 0, prevBoard, currMove);
+
         toAdd = Tile.create(2, 1, 2);
         model.addTile(toAdd);
 
@@ -1134,6 +1135,7 @@ public class TestModel extends TestUtils {
                 {0, 0, 0, 8},
                 {0, 2, 4, 16}
         }, totalScore, 0, prevBoard, currMove);
+
         toAdd = Tile.create(2, 1, 1);
         model.addTile(toAdd);
 
@@ -1147,6 +1149,7 @@ public class TestModel extends TestUtils {
                 {0, 0, 0, 16},
                 {0, 0, 0, 0}
         }, totalScore, 0, prevBoard, currMove);
+
         toAdd = Tile.create(4, 0, 0);
         model.addTile(toAdd);
 
@@ -1159,6 +1162,7 @@ public class TestModel extends TestUtils {
                 {0, 0, 0, 16},
                 {0, 0, 0, 0}
         }, totalScore, 0, prevBoard, currMove);
+
         toAdd = Tile.create(2, 3, 0);
         model.addTile(toAdd);
 
@@ -1172,5 +1176,10 @@ public class TestModel extends TestUtils {
                 {0, 0, 0, 16},
                 {0, 0, 0, 2}
         }, totalScore, 0, prevBoard, currMove);
+
+
     }
 }
+
+
+
