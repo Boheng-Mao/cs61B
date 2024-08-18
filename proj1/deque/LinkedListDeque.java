@@ -1,0 +1,139 @@
+package deque;
+
+public class LinkedListDeque<T> {
+    private class Node {
+        public T content;
+        public Node next;
+        public Node prev;
+
+        public Node(T item, Node next, Node prev) {
+            this.content = item;
+            this.next = next;
+            this.prev = prev;
+        }
+    }
+
+    private final Node sentinel;
+    public int size;
+
+    public LinkedListDeque() {
+        this.sentinel = new Node(null, null, null);
+        sentinel.next = sentinel;
+        sentinel.prev = sentinel;
+        size = 0;
+    }
+
+    public LinkedListDeque(T x) {
+        this.sentinel = new Node(null, null, null);
+        sentinel.next = new Node(x, sentinel, sentinel);
+        sentinel.prev = sentinel.next;
+        size = 1;
+    }
+
+    /** Adds an item of type T to the beginning of the deque, assuming that item isn't null. */
+    public void addFirst (T item) {
+        sentinel.next = new Node(item, sentinel.next, sentinel);
+        sentinel.next.next.prev = sentinel.next;
+        size += 1;
+    }
+
+    /** Adds an item of type T to the back of the deque, assuming that item isn't null. */
+    public void addLast (T item) {
+        sentinel.prev = new Node (item, sentinel, sentinel.prev);
+        sentinel.prev.prev.next = sentinel.prev;
+        size += 1;
+    }
+
+    /** Returns true if  deque is empty, false otherwise. */
+    public boolean isEmpty () {
+        return size == 0;
+    }
+
+    /** Returns the number of items in the deque. */
+    public int size() {
+        return size;
+    }
+
+    /** Prints the items in the deque from first to last, separated by a space.
+     * Once all the items have been printed, print out a new line. */
+    public void printDeque() {
+        Node p = sentinel.next;
+        while (p != sentinel) {
+            System.out.print(p.content + " ");
+            p = p.next;
+        }
+        System.out.println();
+    }
+
+    /** Removes and returns the item at the front of the deque. If no such item exists, returns null. */
+    public T removeFirst () {
+        if (size() == 0) {
+            return null;
+        }
+        T result = sentinel.next.content;
+        sentinel.next = sentinel.next.next;
+        sentinel.next.prev = sentinel;
+        size -= 1;
+        return result;
+    }
+
+    /** Removes and returns the item at the back of the deque. If no such item exists, returns null. */
+    public T removeLast () {
+        if (size() == 0) {
+            return null;
+        }
+        T result = sentinel.prev.content;
+        sentinel.prev = sentinel.prev.prev;
+        sentinel.prev.next = sentinel;
+        size -= 1;
+        return result;
+    }
+
+    /** Gets the item at the given index, where O is the front, 1 is the next item, and so forth.
+     * If no such item exists, returns null. */
+    public T get (int index) {
+        Node p = sentinel.next;
+        for (int i = 0; i < index; i++) {
+            if (p.next != sentinel) {
+                p = p.next;
+            } else {
+                return null;
+            }
+        }
+        return p.content;
+    }
+
+    /** Gets the item at the given index, but uses recursion. */
+    public T getRecursive(int index) {
+        if (index == 0) {
+            return sentinel.next.content;
+        } else {
+            removeFirst();
+            return getRecursive(index - 1);
+        }
+    }
+
+    /** Returns whether the parameter o represents a deque with same contents in the same order. */
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        }
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof LinkedListDeque)) {
+            return false;
+        }
+        LinkedListDeque<?> list = (LinkedListDeque<?>) o;
+        if (list.size() != this.size()) {
+            return false;
+        } else {
+            for (int i = 0; i < this.size(); i++) {
+                if (list.get(i) != this.get((i))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+}
