@@ -129,11 +129,11 @@ public class LinkedListDequeTest {
     /* Test the getRecursive method. */
     public void getRecursiveTest() {
         LinkedListDeque<Integer> lld = new LinkedListDeque<>();
-        for (int i = 0; i < 10; i++) {
-            lld.addFirst(i);
+        for (int i = 0; i < 100; i++) {
+            lld.addLast(i);
         }
         int value = lld.getRecursive(6);
-        assertEquals(3, value);
+        assertEquals(6, value);
     }
 
     @Test

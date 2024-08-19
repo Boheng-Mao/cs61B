@@ -3,6 +3,8 @@ package deque;
 import edu.princeton.cs.algs4.StdRandom;
 import org.junit.Test;
 
+import java.util.Optional;
+
 import static org.junit.Assert.*;
 
 public class ArrayDequeTest {
@@ -154,6 +156,31 @@ public class ArrayDequeTest {
         assertTrue("Should be empty", arrayDeque.isEmpty());
     }
 
+
+    @Test
+    public void basicGet() {
+        ArrayDeque<Integer> arrayDeque = new ArrayDeque<>();
+        arrayDeque.addLast(0);
+        arrayDeque.addLast(1);
+        arrayDeque.addFirst(2);
+        arrayDeque.addLast(3);
+        arrayDeque.addFirst(4);
+        arrayDeque.removeLast();
+        arrayDeque.addFirst(6);
+        arrayDeque.addLast(7);
+        arrayDeque.addLast(8);
+        arrayDeque.addFirst(9);
+        arrayDeque.addFirst(10);
+        arrayDeque.get(0);
+        arrayDeque.addLast(12);
+        arrayDeque.addFirst(13);
+        arrayDeque.addFirst(14);
+        arrayDeque.removeFirst();
+        arrayDeque.removeFirst();
+        int value = arrayDeque.get(4);
+        assertEquals(2, value);
+    }
+
     @Test
     public void randomizedTest() {
         ArrayDeque<Integer> arrayDeque = new ArrayDeque<>();
@@ -180,5 +207,23 @@ public class ArrayDequeTest {
                 arrayDeque.get(randIndex);
             }
         }
+    }
+
+    @Test
+    public void resizingNoNulls() {
+        int N = 9;
+        ArrayDeque<Integer> arrayDeque = new ArrayDeque<>();
+        for (int i = 0; i < N; i++) {
+            arrayDeque.addFirst(90);
+        }
+        assertNotNull(arrayDeque.removeFirst());
+        assertNotNull(arrayDeque.removeLast());
+        assertNotNull(arrayDeque.removeFirst());
+        assertNotNull(arrayDeque.removeLast());
+        assertNotNull(arrayDeque.removeFirst());
+        assertNotNull(arrayDeque.removeLast());
+        assertNotNull(arrayDeque.removeFirst());
+        assertNotNull(arrayDeque.removeLast());
+        assertNotNull(arrayDeque.removeFirst());
     }
 }
