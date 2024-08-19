@@ -53,25 +53,24 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             }
         } else {
             int original_length = items.length;
-            int capacity = enlargeTo(items.length * 2);
-            nextFirst = (capacity - (original_length - nextLast)) - 1;
+            enlargeTo(items.length * 2);
             items[nextFirst] = item;
-            nextFirst -= 1;
+            nextFirst = items.length - 1;
             size += 1;
         }
     }
 
     /** Resize and enlarge the array to the target capacity, finally return the current capacity. */
-    public int enlargeTo(int capacity) {
+    public void enlargeTo(int capacity) {
         T[] a = (T[]) new Object[capacity];
-        for (int i = 0; i < nextLast; i++) {
-            a[i] = items[i];
-        }
-        for (int i = capacity - (items.length - nextFirst) + 1; i < capacity; i++) {
-            a[i] = items[i + items.length - capacity];
+        int index = (nextFirst + 1) % items.length;
+        for (int i = 1; i < size + 1; i++) {
+            a[i] = items[index];
+            index = (index + 1) % items.length;
         }
         items = a;
-        return capacity;
+        nextFirst = 0;
+        nextLast = size + 1;
     }
 
     /** Adds an item of type T to the back of the deque, assuming that item isn't null. */
@@ -86,8 +85,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             }
         } else {
             int original_length = items.length;
-            int capacity = enlargeTo(items.length * 2);
-            nextFirst = (capacity - (original_length - nextLast)) - 1;
+            enlargeTo(items.length * 2);
             items[nextLast] = item;
             nextLast += 1;
             size += 1;
