@@ -1,6 +1,8 @@
 package deque;
 
-public class LinkedListDeque<T> implements Deque<T> {
+import java.util.Iterator;
+
+public class LinkedListDeque<T> implements Deque<T>, Iterable<T>  {
     private class Node {
         public T content;
         public Node next;
@@ -10,6 +12,24 @@ public class LinkedListDeque<T> implements Deque<T> {
             this.content = item;
             this.next = next;
             this.prev = prev;
+        }
+    }
+
+    private class LinkedListDequeIterator implements Iterator<T> {
+        private int pos = 0;
+        @Override
+        public boolean hasNext() {
+            return pos < size;
+        }
+
+        @Override
+        public T next() {
+            if (!hasNext()) {
+                return null;
+            }
+            T res = get(pos);
+            pos += 1;
+            return res;
         }
     }
 
@@ -106,6 +126,10 @@ public class LinkedListDeque<T> implements Deque<T> {
             removeFirst();
             return getRecursive(index - 1);
         }
+    }
+
+    public Iterator<T> iterator() {
+        return new LinkedListDequeIterator();
     }
 
     /** Returns whether the parameter o represents a deque with same contents in the same order. */
