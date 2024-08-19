@@ -113,7 +113,7 @@ public class ArrayDequeTest {
     public void getBigAmountTest() {
         ArrayDeque<Integer> arrayDeque = new ArrayDeque<>();
 
-        int M = 10000;
+        int M = 1000000;
 
         for (int i = 0; i < M; i++) {
             arrayDeque.addLast(i);
@@ -131,7 +131,7 @@ public class ArrayDequeTest {
             arrayDeque.addLast(i);
         }
         arrayDeque.printDeque();
-        arrayDeque.shrinkTo();
+        arrayDeque.shrink();
         arrayDeque.printDeque();
     }
 

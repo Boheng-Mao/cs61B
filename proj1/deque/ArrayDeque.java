@@ -87,79 +87,29 @@ public class ArrayDeque<T> {
     /** Prints the items in the deque from first to last, separated by a space.
      * Once all the items have been printed, print out a new line. */
     public void printDeque () {
-        if (size == items.length) {
-            for (int i = nextLast; i < items.length; i++) {
-                System.out.print(items[i] + " ");
-            }
-            for (int i = 0; i < nextLast; i++) {
-                System.out.print(items[i] + " ");
-            }
-            System.out.println();
+        int index = (nextFirst + 1) % items.length;
+        while (index != nextLast) {
+            System.out.print(items[index] + " ");
+            index = (index + 1) % items.length;
         }
-        else {
-            if (nextFirst < nextLast) {
-                for (int i = nextFirst + 1; i < nextLast; i++) {
-                    System.out.print(items[i] + " ");
-                }
-                System.out.println();
-            }
-            else if (nextFirst == nextLast) {
-                for (int i = nextFirst + 1; i < items.length; i++) {
-                    System.out.print(items[i] + " ");
-                }
-                for (int i = 0; i < nextFirst; i++) {
-                    System.out.print(items[i] + " ");
-                }
-                System.out.println();
-            }
-            else {
-                for (int i = nextFirst + 1; i < items.length; i++) {
-                    System.out.print(items[i] + " ");
-                }
-                for (int i = 0; i < nextLast; i++) {
-                    System.out.print(items[i] + " ");
-                }
-                System.out.println();
-            }
-        }
+        System.out.println();
     }
 
     /** Construct a new item list with original elements copied into that new list in order. */
-    public void shrinkTo() {
+    public void shrink() {
         if (size >= 16) {
-            int capacity = 2 * size;
+            int capacity = size * 2;
             T[] a = (T[]) new Object[capacity];
-            if (nextFirst < nextLast) {
-                for (int i = nextFirst + 1; i < nextLast; i++) {
-                    a[1 + i - nextFirst - 1] = items[i];
-                }
-                items = a;
-                nextFirst = 0;
-                nextLast = 1 + size;
-            } else if (nextFirst == nextLast) {
-                int old_length = items.length;
-                for (int i = nextFirst + 1; i < old_length; i++) {
-                    a[1 + i - nextFirst - 1] = items[i];
-                }
-                for (int i = 0; i < nextFirst; i++) {
-                    a[1 + old_length - nextFirst - 1 + i] = items[i];
-                }
-                items = a;
-                nextFirst = 0;
-                nextLast = 1 + size;
-
-            } else {
-                int old_length = items.length;
-                for (int i = nextFirst + 1; i < old_length; i++) {
-                    a[1 + i - nextFirst - 1] = items[i];
-                }
-                for (int i = 0; i < nextLast; i++) {
-                    a[1 + old_length - nextFirst - 1 + i] = items[i];
-                }
-                items = a;
-                nextFirst = 0;
-                nextLast = 1 + size;
+            int i = 1;
+            int index = (nextFirst + 1) % items.length;
+            while (index != nextLast) {
+                a[i] = items[index];
+                index = (index + 1) % items.length;
+                i += 1;
             }
+            items = a;
+            nextFirst = 0;
+            nextLast = size + 1;
         }
     }
 
@@ -167,7 +117,7 @@ public class ArrayDeque<T> {
     /** Removes and returns the item at the front of the deque. If no such item exists, returns null. */
     public T removeFirst() {
         if (items.length / 4 >= size - 1 && size >= 16) {
-            shrinkTo();
+            shrink();
             T value = items[nextFirst + 1];
             items[nextFirst + 1] = null;
             size -= 1;
@@ -177,12 +127,7 @@ public class ArrayDeque<T> {
         if (size == 0) {
             return null;
         }
-        int index;
-        if (nextFirst + 1 >= items.length) {
-            index = 0;
-        } else {
-            index = nextFirst + 1;
-        }
+        int index = (nextFirst + 1) % items.length;
         T value = items[index];
         items[index] = null;
         size -= 1;
@@ -193,7 +138,7 @@ public class ArrayDeque<T> {
     /** Removes and returns the item at the back of the deque. If no such item exists, returns null. */
     public T removeLast (){
         if (items.length / 4 >= size - 1 && size >= 16) {
-            shrinkTo();
+            shrink();
             T value = items[nextLast - 1];
             items[nextFirst + 1] = null;
             size -= 1;
@@ -222,11 +167,10 @@ public class ArrayDeque<T> {
 
     /** Gets the item at the given index, where O is the front, 1 is the next item, and so forth.
      * If no such item exists, returns null. */
-    public T get (int index) {
-        int value = (nextFirst + 1) % items.length;
-        for (int i = 0; i < index; i++) {
-            value = (value + 1) % items.length;
+    public T get(int index) {
+        if (index >= size) {
+            return null;
         }
-        return items[value];
+        return items[(nextFirst + 1 + index) % items.length];
     }
 }
