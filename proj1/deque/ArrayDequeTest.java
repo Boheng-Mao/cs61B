@@ -10,14 +10,6 @@ import static org.junit.Assert.*;
 public class ArrayDequeTest {
 
     @Test
-    public void nonEmptyInstantiationTest() {
-        ArrayDeque<Integer> arrayDeque = new ArrayDeque<>(1);
-
-        assertFalse("Should not be empty", arrayDeque.isEmpty());
-        assertEquals("Should have size 1", 1, arrayDeque.size());
-    }
-
-    @Test
     public void addTest() {
         ArrayDeque<String> arrayDeque = new ArrayDeque<>();
 
@@ -124,17 +116,6 @@ public class ArrayDequeTest {
         for (int i = 0; i < M; i++) {
             assertEquals("Should be equal", i, (int) arrayDeque.get(i));
         }
-    }
-
-    @Test
-    public void testShrinkTo() {
-        ArrayDeque<Integer> arrayDeque = new ArrayDeque<>();
-        for (int i = 0; i < 20; i++) {
-            arrayDeque.addLast(i);
-        }
-        arrayDeque.printDeque();
-        arrayDeque.shrink();
-        arrayDeque.printDeque();
     }
 
     @Test

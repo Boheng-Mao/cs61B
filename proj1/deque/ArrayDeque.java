@@ -33,14 +33,6 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         nextLast = 4;
     }
 
-    public ArrayDeque(T item) {
-        items = (T[]) new Object[8];
-        items[3] = item;
-        size = 1;
-        nextFirst = 2;
-        nextLast = 4;
-    }
-
     /** Adds an item of type T to the beginning of the deque, assuming that item isn't null. */
     public void addFirst (T item) {
         if (size < items.length) {
@@ -52,7 +44,6 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
                 nextFirst -= 1;
             }
         } else {
-            int original_length = items.length;
             enlargeTo(items.length * 2);
             items[nextFirst] = item;
             nextFirst = items.length - 1;
@@ -61,7 +52,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     }
 
     /** Resize and enlarge the array to the target capacity, finally return the current capacity. */
-    public void enlargeTo(int capacity) {
+    private void enlargeTo(int capacity) {
         T[] a = (T[]) new Object[capacity];
         int index = (nextFirst + 1) % items.length;
         for (int i = 1; i < size + 1; i++) {
@@ -84,7 +75,6 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
                 nextLast += 1;
             }
         } else {
-            int original_length = items.length;
             enlargeTo(items.length * 2);
             items[nextLast] = item;
             nextLast += 1;
@@ -109,7 +99,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     }
 
     /** Construct a new item list with original elements copied into that new list in order. */
-    public void shrink() {
+    private void shrink() {
         if (size >= 16) {
             int capacity = size * 2;
             T[] a = (T[]) new Object[capacity];

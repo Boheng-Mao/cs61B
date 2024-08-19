@@ -163,11 +163,21 @@ public class LinkedListDequeTest {
         assertFalse(lld1.equals(lld2));
     }
 
-    @Test
-    public void nonEmptyInstantiationTest() {
-        LinkedListDeque<Integer> lld1 = new LinkedListDeque<>(1);
 
-        assertFalse("Should not be empty", lld1.isEmpty());
-        assertEquals("Should have size 1", 1, lld1.size());
+    @Test
+    public void recursiveGet() {
+        LinkedListDeque<Integer> lld = new LinkedListDeque<>();
+        lld.addFirst(0);
+        lld.addLast(1);
+        lld.removeFirst();
+        lld.addFirst(3);
+        lld.addFirst(4);
+        lld.removeFirst();
+        lld.addLast(6);
+        lld.addFirst(7);
+        lld.getRecursive(1);
+        lld.removeLast();
+        int value = lld.getRecursive(2);
+        assertEquals(1, value);
     }
 }

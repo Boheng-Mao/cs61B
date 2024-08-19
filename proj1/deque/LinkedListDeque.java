@@ -43,13 +43,6 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>  {
         size = 0;
     }
 
-    public LinkedListDeque(T x) {
-        this.sentinel = new Node(null, null, null);
-        sentinel.next = new Node(x, sentinel, sentinel);
-        sentinel.prev = sentinel.next;
-        size = 1;
-    }
-
     /** Adds an item of type T to the beginning of the deque, assuming that item isn't null. */
     public void addFirst (T item) {
         sentinel.next = new Node(item, sentinel.next, sentinel);
@@ -127,9 +120,15 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>  {
             return null;
         }
         else {
-            removeFirst();
-            return getRecursive(index - 1);
+            return getRecursiveHelper(index, sentinel.next);
         }
+    }
+
+    private T getRecursiveHelper(int index, Node currentNode) {
+        if (index == 0) {
+            return currentNode.content;
+        }
+        return getRecursiveHelper(index - 1, currentNode.next);
     }
 
     public Iterator<T> iterator() {
