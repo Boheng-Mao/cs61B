@@ -136,6 +136,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>  {
     }
 
     /** Returns whether the parameter o represents a deque with same contents in the same order. */
+    @Override
     public boolean equals(Object o) {
         if (o == null) {
             return false;
@@ -146,16 +147,16 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>  {
         if (!(o instanceof Deque)) {
             return false;
         }
-        Deque<?> list = (Deque<?>) o;
-        if (list.size() != this.size()) {
-            return false;
-        } else {
-            for (int i = 0; i < this.size(); i++) {
-                if (list.get(i) != this.get((i))) {
+        Deque<?> lo = (Deque<?>) o;
+        if (lo.size() == size) {
+            for (int i = 0; i < size; i++) {
+                if (!(get(i).equals(lo.get(i)))) {
                     return false;
                 }
             }
             return true;
         }
+        return false;
     }
+
 }
