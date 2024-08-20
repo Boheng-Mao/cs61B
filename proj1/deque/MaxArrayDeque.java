@@ -5,7 +5,7 @@ import java.util.Comparator;
 public class MaxArrayDeque<T> extends ArrayDeque<T> {
     private final Comparator<T> comparator;
 
-    public MaxArrayDeque(Comparator<T> c){
+    public MaxArrayDeque(Comparator<T> c) {
         super();
         comparator = c;
     }
@@ -33,7 +33,7 @@ public class MaxArrayDeque<T> extends ArrayDeque<T> {
         }
         T maximum = get(0);
         for (int i = 1; i < size(); i++) {
-            if (c.compare(get(i), maximum) > 0){
+            if (c.compare(get(i), maximum) > 0) {
                 maximum = get(i);
             }
         }

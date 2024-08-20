@@ -34,7 +34,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     }
 
     /** Adds an item of type T to the beginning of the deque, assuming that item isn't null. */
-    public void addFirst (T item) {
+    public void addFirst(T item) {
         if (size < items.length) {
             items[nextFirst] = item;
             size += 1;
@@ -65,7 +65,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     }
 
     /** Adds an item of type T to the back of the deque, assuming that item isn't null. */
-    public void addLast (T item) {
+    public void addLast(T item) {
         if (size < items.length) {
             items[nextLast] = item;
             size += 1;
@@ -89,7 +89,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
 
     /** Prints the items in the deque from first to last, separated by a space.
      * Once all the items have been printed, print out a new line. */
-    public void printDeque () {
+    public void printDeque() {
         int index = (nextFirst + 1) % items.length;
         while (index != nextLast) {
             System.out.print(items[index] + " ");
@@ -117,7 +117,8 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     }
 
 
-    /** Removes and returns the item at the front of the deque. If no such item exists, returns null. */
+    /** Removes and returns the item at the front of the deque.
+     * If no such item exists, returns null. */
     public T removeFirst() {
         if (items.length / 4 >= size - 1 && size >= 16) {
             shrink();
@@ -138,8 +139,9 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         return value;
     }
 
-    /** Removes and returns the item at the back of the deque. If no such item exists, returns null. */
-    public T removeLast (){
+    /** Removes and returns the item at the back of the deque.
+     * If no such item exists, returns null. */
+    public T removeLast() {
         if (items.length / 4 >= size - 1 && size >= 16) {
             shrink();
             T value = items[nextLast - 1];

@@ -4,11 +4,11 @@ import java.util.Iterator;
 
 public class LinkedListDeque<T> implements Deque<T>, Iterable<T>  {
     private class Node {
-        public T content;
-        public Node next;
-        public Node prev;
+        private T content;
+        private Node next;
+        private Node prev;
 
-        public Node(T item, Node next, Node prev) {
+        Node(T item, Node next, Node prev) {
             this.content = item;
             this.next = next;
             this.prev = prev;
@@ -44,15 +44,15 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>  {
     }
 
     /** Adds an item of type T to the beginning of the deque, assuming that item isn't null. */
-    public void addFirst (T item) {
+    public void addFirst(T item) {
         sentinel.next = new Node(item, sentinel.next, sentinel);
         sentinel.next.next.prev = sentinel.next;
         size += 1;
     }
 
     /** Adds an item of type T to the back of the deque, assuming that item isn't null. */
-    public void addLast (T item) {
-        sentinel.prev = new Node (item, sentinel, sentinel.prev);
+    public void addLast(T item) {
+        sentinel.prev = new Node(item, sentinel, sentinel.prev);
         sentinel.prev.prev.next = sentinel.prev;
         size += 1;
     }
@@ -73,8 +73,9 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>  {
         System.out.println();
     }
 
-    /** Removes and returns the item at the front of the deque. If no such item exists, returns null. */
-    public T removeFirst () {
+    /** Removes and returns the item at the front of the deque.
+     * If no such item exists, returns null. */
+    public T removeFirst() {
         if (size() == 0) {
             return null;
         }
@@ -85,8 +86,9 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>  {
         return result;
     }
 
-    /** Removes and returns the item at the back of the deque. If no such item exists, returns null. */
-    public T removeLast () {
+    /** Removes and returns the item at the back of the deque.
+     * If no such item exists, returns null. */
+    public T removeLast() {
         if (size() == 0) {
             return null;
         }
@@ -99,7 +101,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>  {
 
     /** Gets the item at the given index, where O is the front, 1 is the next item, and so forth.
      * If no such item exists, returns null. */
-    public T get (int index) {
+    public T get(int index) {
         Node p = sentinel.next;
         for (int i = 0; i < index; i++) {
             if (p.next != sentinel) {
@@ -115,11 +117,9 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>  {
     public T getRecursive(int index) {
         if (index == 0) {
             return sentinel.next.content;
-        }
-        else if (index >= size || index < 0) {
+        } else if (index >= size || index < 0) {
             return null;
-        }
-        else {
+        } else {
             return getRecursiveHelper(index, sentinel.next);
         }
     }
@@ -158,5 +158,4 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>  {
         }
         return false;
     }
-
 }
