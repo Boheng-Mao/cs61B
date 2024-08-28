@@ -2,7 +2,11 @@ package gitlet;
 
 // TODO: any imports you need here
 
-import java.util.Date; // TODO: You'll likely use this in this class
+import java.io.File;
+import static gitlet.Utils.*;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Formatter;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -10,7 +14,7 @@ import java.util.Date; // TODO: You'll likely use this in this class
  *
  *  @author TODO
  */
-public class Commit {
+public class Commit implements Serializable {
     /**
      * TODO: add instance variables here.
      *
@@ -19,8 +23,22 @@ public class Commit {
      * variable is used. We've provided one example for `message`.
      */
 
+    /** The Folder that commits are located. */
+    static final File COMMIT_FOLDER = join(".gitlet", "objects","commits");
     /** The message of this Commit. */
     private String message;
+    /** The date of this commit. */
+    private Date timestamp;
+    /** The ID of this commit. */
+    private String id;
+    /** The two parents of this commit stored as ID. */
+    private String parent1;
+    private String parent2;
+    /** A mapping of file names to blob references as ID (TreeMap?). */
 
-    /* TODO: fill in the rest of this class. */
+    public Commit(String message, Date timestamp) {
+        this.message = message;
+        this.timestamp = timestamp;
+    }
+
 }
