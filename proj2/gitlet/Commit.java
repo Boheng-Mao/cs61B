@@ -5,8 +5,7 @@ package gitlet;
 import java.io.File;
 import static gitlet.Utils.*;
 import java.io.Serializable;
-import java.util.Date;
-import java.util.Formatter;
+import java.util.*;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -23,8 +22,6 @@ public class Commit implements Serializable {
      * variable is used. We've provided one example for `message`.
      */
 
-    /** The Folder that commits are located. */
-    static final File COMMIT_FOLDER = join(".gitlet", "objects","commits");
     /** The message of this Commit. */
     private String message;
     /** The date of this commit. */
@@ -35,6 +32,9 @@ public class Commit implements Serializable {
     private String parent1;
     private String parent2;
     /** A mapping of file names to blob references as ID (TreeMap?). */
+    private Map<String, String> blobProjection = new TreeMap<>();
+    /** A list containing the blobs in this commit. */
+    private List<String> blobList = new ArrayList<>();
 
     public Commit(String message, Date timestamp) {
         this.message = message;
