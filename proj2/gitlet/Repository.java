@@ -1,6 +1,9 @@
 package gitlet;
 
+import javax.swing.*;
 import java.io.File;
+import java.util.Objects;
+
 import static gitlet.Utils.*;
 
 // TODO: any imports you need here
@@ -15,8 +18,8 @@ import static gitlet.Utils.*;
  *      -branches/
  *          -master -- file for the master branch
  *          -other -- file for other branches
- *      -HEAD -- file storing the HEAD pointer
- *      -BRANCH -- file storing the current branch
+ *      -HEAD -- file tracking the HEAD pointer
+ *      -BRANCH -- file tracking the current branch
  *      -Stages/
  *          -addStage -- file containing the files in addStage area
  *          -removeStage -- file containing the files in removeStage area
@@ -58,6 +61,64 @@ public class Repository {
         COMMIT_FOLDER.mkdir();
         BRANCH_FOLDER.mkdir();
         STAGE_FOLDER.mkdir();
+    }
+
+    public static void initCommand() {
+        if (GITLET_DIR.exists()) {
+            System.out.println("A Gitlet version-control system already exists in the current directory.");
+            System.exit(0);
+        }
+        setupPersistence();
+        Commit initialCommit = new Commit();
+        initialCommit.saveToFile();
+        Branch initialBranch = new Branch("master");
+        initialBranch.commitID = initialCommit.id;
+        writeContents(HEAD, initialCommit.id);
+        writeContents(BRANCH, initialBranch.branchName);
+        Stage addStage = new Stage("addStage");
+        Stage removeStage = new Stage("removeStage");
+        addStage.saveToFile();
+        removeStage.saveToFile();
+    }
+
+    public static void addCommand(String filename) {
+        if (!GITLET_DIR.exists()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            System.exit(0);
+        }
+        if (!checkFileExists(filename, CWD)) {
+            System.out.println("File does not exist.");
+            System.exit(0);
+        }
+        File file = join(CWD, filename);
+        Blob b = new Blob(file);
+        Stage addStage = Stage.fromFile("addStage");
+        Stage removeStage = Stage.fromFile("removeStage");
+        if (removeStage.stageBlobMap.containsKey(filename)) {
+            //TODO: do not remove the file in this case, and add the file to addStage.
+        }
+        if (addStage.stageBlobMap.containsKey(filename)) {
+            if (Objects.equals(addStage.stageBlobMap.get(filename), b.id)) {
+                addStage.stageBlobMap.remove(filename);
+            } else {
+                addStage.stageBlobMap.put(filename, b.id);
+                b.saveToFile();
+            }
+        }
+    }
+
+    private static boolean checkFileExists(String filename, File directory) {
+        File[] files = directory.listFiles();
+        if (files != null) {
+            boolean isfound = false;
+            for (File file : files) {
+                if (file.isFile() && file.getName().equals(filename)) {
+                    isfound = true;
+                    return isfound;
+                }
+            }
+        }
+        return false;
     }
 
 }

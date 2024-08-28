@@ -8,11 +8,28 @@ import java.util.Formatter;
 
 public class Blob implements Serializable {
     /** The ID of this blob. */
-    private String id;
-    /** The name of this blob. */
-    private String name;
+    public String id;
+    /** The file that has the content of this blob. */
+    public File file;
+    /** The path of the blob's corresponding file. */
+    public String filePath;
+    /** The byte array representation of the blob's file content. */
+    public byte[] byteContent;
 
-    public Blob() {
+    public Blob(File file) {
+        this.id = createID();
+        this.file = file;
+        this.filePath = file.getPath();
+        this.byteContent = readContents(file);
+    }
 
+    /** Creates SHA1-ID for this blob. */
+    private String createID() {
+        return sha1((Object) byteContent);
+    }
+
+    public void saveToFile() {
+        File outfile = join(Repository.BLOB_FOLDER, this.id);
+        writeObject(outfile, this);
     }
 }

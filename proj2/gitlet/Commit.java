@@ -6,6 +6,8 @@ import java.io.File;
 import static gitlet.Utils.*;
 import java.io.Serializable;
 import java.util.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -25,20 +27,44 @@ public class Commit implements Serializable {
     /** The message of this Commit. */
     private String message;
     /** The date of this commit. */
-    private Date timestamp;
+    private Date currentTime;
+    private String timeStamp;
     /** The ID of this commit. */
-    private String id;
+    public String id;
     /** The two parents of this commit stored as ID. */
-    private String parent1;
-    private String parent2;
+    private List<String> parentList = new ArrayList<>();
     /** A mapping of file names to blob references as ID (TreeMap?). */
     private Map<String, String> blobProjection = new TreeMap<>();
     /** A list containing the blobs in this commit. */
     private List<String> blobList = new ArrayList<>();
 
-    public Commit(String message, Date timestamp) {
-        this.message = message;
-        this.timestamp = timestamp;
+    /** Creates the initial commit. */
+    public Commit() {
+        this.message = "initial commit";
+        this.currentTime = new Date(0);
+        this.timeStamp = createTimeStamp(currentTime);
+        this.id = createID();
     }
 
+    public Commit(String message, Date timestamp) {
+        this.message = message;
+        this.currentTime = timestamp;
+    }
+
+    /** Create a timestamp given a Date object for each commit. */
+    private String createTimeStamp(Date currentTime) {
+        DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.US);
+        return dateFormat.format(currentTime);
+    }
+
+    /** Serialize and safe the commit object to the commits directory. */
+    public void saveToFile() {
+        File outfile = join(Repository.COMMIT_FOLDER, this.id);
+        writeObject(outfile, this);
+    }
+
+    /** Create and return a ID for each commit. */
+    private String createID() {
+        return sha1(message, parentList.toString(), blobList.toString(), timeStamp);
+    }
 }

@@ -14,14 +14,15 @@ public class Main {
             System.out.println("Please enter a command.");
             System.exit(0);
         }
-
         String firstArg = args[0];
         switch(firstArg) {
             case "init":
-                // TODO: handle the `init` command
+                validNumArgs(args, 1);
+                Repository.initCommand();
                 break;
             case "add":
-                // TODO: handle the `add [filename]` command
+                validNumArgs(args, 2);
+                Repository.addCommand(args[1]);
                 break;
                 // TODO: Add all the rest of the commands here.
             // TODO: If .gitlet does not exit, and user's input requires .gitlet,
