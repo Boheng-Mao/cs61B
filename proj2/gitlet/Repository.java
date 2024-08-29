@@ -121,6 +121,7 @@ public class Repository {
         }
         // Else, add the file to the addStage.
         addStage.stageBlobMap.put(file.getPath(), b.id);
+        addStage.saveToFile();
         b.saveToFile();
     }
 
@@ -175,7 +176,7 @@ public class Repository {
         newCommit.id = newCommit.createID();
         newCommit.saveToFile();
         // Change the HEAD pointer
-        restrictedDelete(HEAD);
+        createNewFile(HEAD);
         writeContents(HEAD, newCommit.id);
         // Clear the Stages and safe the changes
         addStage.stageBlobMap.clear();
@@ -257,6 +258,152 @@ public class Repository {
                 System.exit(0);
             }
         }
+    }
+
+    public static void statusCommand() {
+        checkGitletDir();
+        printBranch();
+        printStageFiles();
+        printRemovedFiles();
+        printModificationsNotStaged();
+        printUntrackedFiles();
+        System.out.println();
+    }
+
+    public static void printBranch() {
+        System.out.println("=== Branches ===");
+        String currentBranchName = readContentsAsString(BRANCH);
+        List<String> branchList = plainFilenamesIn(BRANCH_FOLDER);
+        assert branchList != null;
+        for (String branchName : branchList) {
+            if (Objects.equals(branchName, currentBranchName)) {
+                System.out.println("*" + branchName);
+            } else {
+                System.out.println(branchName);
+            }
+        }
+        System.out.println();
+    }
+
+    public static void printStageFiles() {
+        System.out.println("=== Staged Files ===");
+        Stage addStage = Stage.getFromFile("addStage");
+        for (String filename : addStage.stageBlobMap.keySet()) {
+            File file = new File(filename);
+            System.out.println(file.getName()); // KeySet obtained from TreeMap is in lexicographic order.
+        }
+        System.out.println();
+    }
+
+    public static void printRemovedFiles() {
+        System.out.println("=== Removed Files ===");
+        Stage removeStage = Stage.getFromFile("removeStage");
+        for (String filename : removeStage.stageBlobMap.keySet()) {
+            File file = new File(filename);
+            System.out.println(file.getName());
+        }
+        System.out.println();
+    }
+
+    /** Check if a file in CWD is “modified but not staged”. */
+    public static boolean modificationsNotStaged(File file) {
+        boolean flag = false;
+        Blob b = new Blob(file);
+        Stage addStage = Stage.getFromFile("addStage");
+        Stage removeStage = Stage.getFromFile("removeStage");
+        //Case 1:Tracked in the current commit, changed in the working directory, but not staged.
+        if (checkSameFile(file, b) &&
+                !addStage.stageBlobMap.containsKey(file.getPath())) {
+            flag = true;
+        }
+        //Case 2:Staged for addition, but with different contents than in the working directory.
+        else if (addStage.stageBlobMap.containsKey(file.getPath()) &&
+                !Objects.equals(addStage.stageBlobMap.get(file.getPath()), b.id)) {
+            flag = true;
+        }
+        //Case 3:Staged for addition, but deleted in the working directory.
+        else if (addStage.stageBlobMap.containsKey(file.getPath()) &&
+                !file.exists()) {
+            flag = true;
+        }
+        //Case 4:Not staged for removal, but tracked in the current commit and deleted from the working directory.
+        else if (!removeStage.stageBlobMap.containsKey(file.getPath()) &&
+                checkFileInCurrentCommit(file) && !file.exists()) {
+            flag = true;
+        }
+        return flag;
+    }
+
+    public static void printModificationsNotStaged() {
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        List<String> nameList = plainFilenamesIn(CWD);
+        assert nameList != null;
+        for (String filename : nameList) {
+            File file = new File(filename);
+            if (modificationsNotStaged(file)) {
+                System.out.println(file.getName());
+            }
+        }
+        System.out.println();
+    }
+
+    public static boolean untrackedFiles(File file) {
+        Stage addStage = Stage.getFromFile("addStage");
+        if (!addStage.stageBlobMap.containsKey(file.getPath()) && !checkFileInCurrentCommit(file)) {
+            return true;
+        }
+        return false;
+    }
+
+    public static void printUntrackedFiles() {
+        System.out.println("=== Untracked Files ===");
+        List<String> nameList = plainFilenamesIn(CWD);
+        assert nameList != null;
+        for (String filename : nameList) {
+            File file = new File(filename);
+            if (untrackedFiles(file)) {
+                System.out.println(file.getName());
+            }
+        }
+        System.out.println();
+    }
+
+    public static void branchCommand(String branchName) {
+        checkGitletDir();
+        String currentCommitID = readContentsAsString(HEAD);
+        Commit currentCommit = Commit.getFromFile(currentCommitID);
+        List<String> name = plainFilenamesIn(BRANCH_FOLDER);
+        assert name != null;
+        if (name.contains(branchName)) {
+            System.out.println("A branch with that name already exists.");
+            System.exit(0);
+        }
+        Branch newBranch = new Branch(branchName, currentCommit);
+        newBranch.saveToFile();
+    }
+
+
+    public static void rmBranchCommand(String branchName) {
+        checkGitletDir();
+        List<String> name = plainFilenamesIn(BRANCH_FOLDER);
+        assert name != null;
+        if (!name.contains(branchName)) {
+            System.out.println("A branch with that name does not exist.");
+            System.exit(0);
+        }
+        String currentBranchName = readContentsAsString(BRANCH);
+        if (currentBranchName.equals(branchName)) {
+            System.out.println("Cannot remove the current branch.");
+            System.exit(0);
+        }
+        Branch branch = Branch.getFromFile(branchName);
+        branch.commitID = null;
+        File branchFile = join(BRANCH_FOLDER, branchName);
+        restrictedDelete(branchFile);
+    }
+
+    public void checkoutCommand() {
+
     }
 
     /** Checks if the current environment has been initialized a GITLET_DIR

@@ -1,6 +1,8 @@
 package gitlet;
 
 
+import java.util.ResourceBundle;
+
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author TODO
  */
@@ -28,6 +30,9 @@ public class Main {
                 validNumArgs(args, 2);
                 Repository.commitCommand(args[1]);
                 break;
+            case "rm":
+                validNumArgs(args, 2);
+                Repository.removeCommand(args[1]);
             case "log":
                 validNumArgs(args,1);
                 Repository.logCommand();
@@ -39,6 +44,18 @@ public class Main {
             case "find":
                 validNumArgs(args, 2);
                 Repository.findCommand(args[1]);
+                break;
+            case "status":
+                validNumArgs(args, 1);
+                Repository.statusCommand();
+                break;
+            case "branch":
+                validNumArgs(args, 2);
+                Repository.branchCommand(args[1]);
+                break;
+            case "rm-branch":
+                validNumArgs(args, 2);
+                Repository.rmBranchCommand(args[1]);
                 break;
             default:
                 System.out.println("No command with that name exists.");

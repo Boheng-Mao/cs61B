@@ -87,7 +87,7 @@ public class Commit implements Serializable {
             System.out.println("Merge: " + parentCommit1.id.substring(0, 7) +
                     " " + parentCommit2.id.substring(0, 7));
         }
-        System.out.println("Date " + this.timeStamp);
+        System.out.println("Date: " + this.timeStamp);
         System.out.println(this.message);
         System.out.println();
     }

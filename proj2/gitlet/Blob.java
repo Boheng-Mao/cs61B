@@ -17,15 +17,15 @@ public class Blob implements Serializable {
     public byte[] byteContent;
 
     public Blob(File file) {
-        this.id = createID();
         this.file = file;
         this.filePath = file.getPath();
         this.byteContent = readContents(file);
+        this.id = createID();
     }
 
     /** Creates SHA1-ID for this blob. */
     private String createID() {
-        return sha1((Object) byteContent, file.getName());
+        return sha1(byteContent, file.getName());
     }
 
     public void saveToFile() {

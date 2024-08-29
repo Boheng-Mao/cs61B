@@ -20,7 +20,7 @@ public class Branch implements Serializable{
     }
 
     public void saveToFile() {
-        File outfile = join(Repository.BRANCH_FOLDER, this.commitID);
+        File outfile = join(Repository.BRANCH_FOLDER, this.branchName);
         writeObject(outfile, this);
     }
 
