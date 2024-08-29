@@ -36,7 +36,6 @@ public class Commit implements Serializable {
     /** A mapping of file paths to blob ids (TreeMap?). */
     public Map<String, String> blobProjection = new TreeMap<>();
     /** A list containing the blobs in this commit. */
-    public List<String> blobList = new ArrayList<>();
 
     /** Creates the initial commit. */
     public Commit() {
@@ -46,9 +45,13 @@ public class Commit implements Serializable {
         this.id = createID();
     }
 
-    public Commit(String message, Date timestamp) {
+    public Commit(String message, Commit parent) {
         this.message = message;
-        this.currentTime = timestamp;
+        this.currentTime = new Date();
+        this.timeStamp = createTimeStamp(currentTime);
+        this.parentList.add(parent.id);
+        this.blobProjection = parent.blobProjection;
+        this.id = createID();
     }
 
     /** Create a timestamp given a Date object for each commit. */
@@ -69,7 +72,24 @@ public class Commit implements Serializable {
     }
 
     /** Create and return a ID for each commit. */
-    private String createID() {
-        return sha1(message, parentList.toString(), blobList.toString(), timeStamp);
+    public String createID() {
+        return sha1(message, parentList.toString(), blobProjection.toString(), timeStamp);
     }
+
+    public void printCommit() {
+        System.out.println("===");
+        System.out.println("commit " + this.id);
+        if (this.parentList.size() > 1) {
+            String parentString1 = parentList.get(0);
+            String parentString2 = parentList.get(1);
+            Commit parentCommit1 = getFromFile(parentString1);
+            Commit parentCommit2 = getFromFile(parentString2);
+            System.out.println("Merge: " + parentCommit1.id.substring(0, 7) +
+                    " " + parentCommit2.id.substring(0, 7));
+        }
+        System.out.println("Date " + this.timeStamp);
+        System.out.println(this.message);
+        System.out.println();
+    }
+
 }

@@ -2,6 +2,7 @@ package gitlet;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.List;
 import java.util.Objects;
 
 import static gitlet.Utils.*;
@@ -81,12 +82,16 @@ public class Repository {
             System.exit(0);
         }
         setupPersistence();
+        // Set up initial Commit and safe it.
         Commit initialCommit = new Commit();
         initialCommit.saveToFile();
-        Branch initialBranch = new Branch("master");
-        initialBranch.commitID = initialCommit.id;
+        // Set up initial Branch and safe it.
+        Branch initialBranch = new Branch(initialCommit);
+        initialBranch.saveToFile();
+        // Fill in the HEAD and BRANCH files with current HEAD pointer and BRANCH.
         writeContents(HEAD, initialCommit.id);
         writeContents(BRANCH, initialBranch.branchName);
+        // Set up the two Stages and safe them.
         Stage addStage = new Stage("addStage");
         Stage removeStage = new Stage("removeStage");
         addStage.saveToFile();
@@ -145,8 +150,113 @@ public class Repository {
         }
     }
 
+
     public static void commitCommand(String message) {
-        
+        checkGitletDir();
+        // Set up the addStage and removeStage
+        Stage addStage = Stage.getFromFile("addStage");
+        Stage removeStage = Stage.getFromFile("removeStage");
+        // Check for failure cases
+        if (addStage.stageBlobMap.isEmpty() && removeStage.stageBlobMap.isEmpty()) {
+            System.out.println("No changes added to the commit.");
+            System.exit(0);
+        }
+        if (message == null) {
+            System.out.println("Please enter a commit message.");
+            System.exit(0);
+        }
+        // Get the current commit.
+        String currentCommitID = readContentsAsString(HEAD);
+        Commit currentCommit = Commit.getFromFile(currentCommitID);
+        // Set up and update the new commit.
+        Commit newCommit = new Commit(message, currentCommit);
+        addUpdate(newCommit, addStage);
+        removeUpdate(newCommit, removeStage);
+        newCommit.id = newCommit.createID();
+        newCommit.saveToFile();
+        // Change the HEAD pointer
+        restrictedDelete(HEAD);
+        writeContents(HEAD, newCommit.id);
+        // Clear the Stages and safe the changes
+        addStage.stageBlobMap.clear();
+        removeStage.stageBlobMap.clear();
+        addStage.saveToFile();
+        removeStage.saveToFile();
+        // Update the branch and safe the changes.
+        Branch currentBranch = Branch.getFromFile(readContentsAsString(BRANCH));
+        currentBranch.commitID = newCommit.id;
+        currentBranch.saveToFile();
+    }
+
+    /** Updates the blobProjection in the new commit for files in addStage. */
+    private static void addUpdate(Commit newCommit, Stage addStage) {
+        // Loop through the addStage's mapping.
+        // First case: if file is not included in current commit, add it in.
+        for (String filepath : addStage.stageBlobMap.keySet()) {
+            if (!(newCommit.blobProjection.containsKey(filepath))) {
+                String blobID = addStage.stageBlobMap.get(filepath);
+                newCommit.blobProjection.put(filepath, blobID);
+            }
+            // Second case: if file is included in the current commit, update its blob.
+            for (String commitPath : newCommit.blobProjection.keySet()) {
+                if (Objects.equals(commitPath, filepath)) {
+                    String blobID = addStage.stageBlobMap.get(filepath);
+                    newCommit.blobProjection.put(commitPath, blobID);
+                }
+            }
+        }
+    }
+
+    /** Updates the blobProjection in the new commit for files in removeStage. */
+    private static void removeUpdate(Commit newCommit, Stage removeStage) {
+        for (String removePath : removeStage.stageBlobMap.keySet()) {
+            for (String commitPath : newCommit.blobProjection.keySet()) {
+                if (Objects.equals(removePath, commitPath)) {
+                    newCommit.blobProjection.remove(commitPath);
+                }
+            }
+        }
+    }
+
+    public static void logCommand() {
+        checkGitletDir();
+        String currentCommitID = readContentsAsString(HEAD);
+        Commit currentCommit = Commit.getFromFile(currentCommitID);
+        while (!currentCommit.parentList.isEmpty()) {
+            currentCommit.printCommit();
+            String parentString = currentCommit.parentList.get(0);
+            Commit parentCommit = Commit.getFromFile(parentString);
+            currentCommit = parentCommit;
+        }
+        currentCommit.printCommit();
+    }
+
+    public static void globalLogCommand() {
+        checkGitletDir();
+        List<String> commitList = plainFilenamesIn(COMMIT_FOLDER);
+        assert commitList != null;
+        for (String commitID : commitList) {
+            Commit currentCommit = Commit.getFromFile(commitID);
+            currentCommit.printCommit();
+        }
+    }
+
+    public static void findCommand(String commitMessage) {
+        checkGitletDir();
+        List<String> commitList = plainFilenamesIn(COMMIT_FOLDER);
+        boolean found = false;
+        assert commitList != null;
+        for (String commitID : commitList) {
+            Commit currentCommit = Commit.getFromFile(commitID);
+            if (Objects.equals(currentCommit.message, commitMessage)) {
+                System.out.println(currentCommit.id);
+                found = true;
+            }
+            if (!found) {
+                System.out.println("Found no commit with that message.");
+                System.exit(0);
+            }
+        }
     }
 
     /** Checks if the current environment has been initialized a GITLET_DIR

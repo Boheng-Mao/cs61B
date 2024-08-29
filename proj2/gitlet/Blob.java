@@ -25,11 +25,17 @@ public class Blob implements Serializable {
 
     /** Creates SHA1-ID for this blob. */
     private String createID() {
-        return sha1((Object) byteContent);
+        return sha1((Object) byteContent, file.getName());
     }
 
     public void saveToFile() {
         File outfile = join(Repository.BLOB_FOLDER, this.id);
         writeObject(outfile, this);
     }
+
+    public static Blob getFromFIle(String id) {
+        File infile = join(Repository.BLOB_FOLDER, id);
+        return readObject(infile, Blob.class);
+    }
+
 }

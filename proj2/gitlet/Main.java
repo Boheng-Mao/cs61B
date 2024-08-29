@@ -27,6 +27,19 @@ public class Main {
             case "commit":
                 validNumArgs(args, 2);
                 Repository.commitCommand(args[1]);
+                break;
+            case "log":
+                validNumArgs(args,1);
+                Repository.logCommand();
+                break;
+            case "global-log":
+                validNumArgs(args, 1);
+                Repository.globalLogCommand();
+                break;
+            case "find":
+                validNumArgs(args, 2);
+                Repository.findCommand(args[1]);
+                break;
             default:
                 System.out.println("No command with that name exists.");
                 System.exit(0);
