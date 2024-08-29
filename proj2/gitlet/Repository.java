@@ -402,8 +402,23 @@ public class Repository {
         restrictedDelete(branchFile);
     }
 
-    public void checkoutCommand() {
+    public void checkoutCommand1(String filename) {
+        checkGitletDir();
+        File file = join(CWD, filename);
+        if (!checkFileInCurrentCommit(file)) {
+            System.out.println("File does not exist in that commit.");
+            System.exit(0);
+        }
+        String currentCommitID = readContentsAsString(HEAD);
+        Commit currentCommit = Commit.getFromFile(currentCommitID);
+        String blobID = currentCommit.blobProjection.get(file.getPath());
+        Blob b = Blob.getFromFIle(blobID);
+        writeContents(file, (Object) b.byteContent);
+    }
 
+    public void checkoutCommand2(String commitID, String filename) {
+        checkGitletDir();
+        
     }
 
     /** Checks if the current environment has been initialized a GITLET_DIR
