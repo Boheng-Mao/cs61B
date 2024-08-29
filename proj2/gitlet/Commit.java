@@ -25,18 +25,18 @@ public class Commit implements Serializable {
      */
 
     /** The message of this Commit. */
-    private String message;
+    public String message;
     /** The date of this commit. */
-    private Date currentTime;
-    private String timeStamp;
+    public Date currentTime;
+    public String timeStamp;
     /** The ID of this commit. */
     public String id;
     /** The two parents of this commit stored as ID. */
-    private List<String> parentList = new ArrayList<>();
-    /** A mapping of file names to blob references as ID (TreeMap?). */
-    private Map<String, String> blobProjection = new TreeMap<>();
+    public List<String> parentList = new ArrayList<>();
+    /** A mapping of file paths to blob ids (TreeMap?). */
+    public Map<String, String> blobProjection = new TreeMap<>();
     /** A list containing the blobs in this commit. */
-    private List<String> blobList = new ArrayList<>();
+    public List<String> blobList = new ArrayList<>();
 
     /** Creates the initial commit. */
     public Commit() {
@@ -61,6 +61,11 @@ public class Commit implements Serializable {
     public void saveToFile() {
         File outfile = join(Repository.COMMIT_FOLDER, this.id);
         writeObject(outfile, this);
+    }
+
+    public static Commit getFromFile(String id) {
+        File infile = join(Repository.COMMIT_FOLDER, id);
+        return readObject(infile, Commit.class);
     }
 
     /** Create and return a ID for each commit. */

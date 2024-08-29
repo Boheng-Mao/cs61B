@@ -9,6 +9,7 @@ import java.util.*;
 
 public class Stage implements Serializable{
     public String stageName;
+    /** A mapping of file paths to blob id, where file paths is the key. */
     public Map<String, String> stageBlobMap = new TreeMap<>();
     public List<String> stageBlobID = new ArrayList<>();
 
@@ -21,7 +22,7 @@ public class Stage implements Serializable{
         writeObject(outfile, this);
     }
 
-    public static Stage fromFile(String stageName) {
+    public static Stage getFromFile(String stageName) {
         File infile = join(Repository.STAGE_FOLDER, stageName);
         return readObject(infile, Stage.class);
     }

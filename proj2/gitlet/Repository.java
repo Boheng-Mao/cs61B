@@ -35,22 +35,34 @@ public class Repository {
      * variable is used. We've provided two examples for you.
      */
 
-    /** The current working directory. */
+    /**
+     * The current working directory.
+     */
     public static final File CWD = new File(System.getProperty("user.dir"));
-    /** The .gitlet directory. */
+    /**
+     * The .gitlet directory.
+     */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
 
-    /** Setting up the objects, blobs and commit directories. */
+    /**
+     * Setting up the objects, blobs and commit directories.
+     */
     public static final File OBJECT_DIR = join(GITLET_DIR, "objects");
     public static final File BLOB_FOLDER = join(OBJECT_DIR, "blobs");
-    public static final File COMMIT_FOLDER = join(OBJECT_DIR,"commits");
+    public static final File COMMIT_FOLDER = join(OBJECT_DIR, "commits");
 
-    /** Setting up the branch directory. */
+    /**
+     * Setting up the branch directory.
+     */
     public static final File BRANCH_FOLDER = join(GITLET_DIR, "branches");
-    /** Setting up the stages' directory. */
+    /**
+     * Setting up the stages' directory.
+     */
     public static final File STAGE_FOLDER = join(GITLET_DIR, "stages");
 
-    /** Setting up HEAD and BRANCH files. */
+    /**
+     * Setting up HEAD and BRANCH files.
+     */
     public static final File HEAD = join(GITLET_DIR, "HEAD");
     public static final File BRANCH = join(GITLET_DIR, "BRANCH");
 
@@ -81,42 +93,96 @@ public class Repository {
         removeStage.saveToFile();
     }
 
+    /** filename is in the form of "example.txt" for instance. */
     public static void addCommand(String filename) {
+        checkGitletDir();
+        File file = join(CWD, filename); // form the file paths from CWD for that file by joining.
+        checkFileExists(file);
+        Blob b = new Blob(file);
+        Stage addStage = Stage.getFromFile("addStage");
+        Stage removeStage = Stage.getFromFile("removeStage");
+        // if file's content is same as the content in the current commit, don't put to addStage.
+        if (checkSameFile(file, b)) {
+            addStage.stageBlobMap.remove(file.getPath());
+            addStage.saveToFile();
+        }
+        // if file is in remove stage, delete file from removeStage and put it to addStage.
+        else if (removeStage.stageBlobMap.containsKey(file.getPath())) {
+            removeStage.stageBlobMap.remove(file.getPath());
+            removeStage.saveToFile();
+            addStage.stageBlobMap.put(file.getPath(), b.id);
+            addStage.saveToFile();
+            b.saveToFile();
+        }
+        // Else, add the file to the addStage.
+        addStage.stageBlobMap.put(file.getPath(), b.id);
+        b.saveToFile();
+    }
+
+    public static void removeCommand(String filename) {
+        checkGitletDir();
+        File file = join(CWD, filename);
+        Blob b = new Blob(file);
+        Stage addStage = Stage.getFromFile("addStage");
+        Stage removeStage = Stage.getFromFile("removeStage");
+        // if file is staged to add, remove it from addStage.
+        if (addStage.stageBlobMap.containsKey(file.getPath())) {
+            addStage.stageBlobMap.remove(file.getPath());
+            addStage.saveToFile();
+            removeStage.stageBlobMap.put(file.getPath(), b.id);
+            removeStage.saveToFile();
+        }
+        // if file is in current commit, put it in remove stage and delete it from CWD.
+        else if (checkFileInCurrentCommit(file)) {
+            removeStage.stageBlobMap.put(file.getPath(), b.id);
+            if (file.exists()) {
+                restrictedDelete(filename);
+            }
+        }
+        else {
+            System.out.println("No reason to remove the file.");
+            System.exit(0);
+        }
+    }
+
+    public static void commitCommand(String message) {
+        
+    }
+
+    /** Checks if the current environment has been initialized a GITLET_DIR
+     * if not, return error message and exit. */
+    private static void checkGitletDir() {
         if (!GITLET_DIR.exists()) {
             System.out.println("Not in an initialized Gitlet directory.");
             System.exit(0);
         }
-        if (!checkFileExists(filename, CWD)) {
-            System.out.println("File does not exist.");
+    }
+
+    /** Checks if the file's path is valid in the CWD. */
+    private static void checkFileExists(File file) {
+        if (!file.exists()) {
+            System.out.println("File does not exits.");
             System.exit(0);
-        }
-        File file = join(CWD, filename);
-        Blob b = new Blob(file);
-        Stage addStage = Stage.fromFile("addStage");
-        Stage removeStage = Stage.fromFile("removeStage");
-        if (removeStage.stageBlobMap.containsKey(filename)) {
-            //TODO: do not remove the file in this case, and add the file to addStage.
-        }
-        if (addStage.stageBlobMap.containsKey(filename)) {
-            if (Objects.equals(addStage.stageBlobMap.get(filename), b.id)) {
-                addStage.stageBlobMap.remove(filename);
-            } else {
-                addStage.stageBlobMap.put(filename, b.id);
-                b.saveToFile();
-            }
         }
     }
 
-    private static boolean checkFileExists(String filename, File directory) {
-        File[] files = directory.listFiles();
-        if (files != null) {
-            boolean isfound = false;
-            for (File file : files) {
-                if (file.isFile() && file.getName().equals(filename)) {
-                    isfound = true;
-                    return isfound;
-                }
-            }
+    /** Checks if the current working version of the file
+     *  is identical to the version in the current commit. */
+    private static boolean checkSameFile(File file, Blob blob) {
+        String currentCommitID = readContentsAsString(HEAD);
+        Commit currentCommit = Commit.getFromFile(currentCommitID);
+        if (currentCommit.blobProjection.containsKey(file.getPath())) {
+            return Objects.equals(currentCommit.blobProjection.get(file.getPath()), blob.id);
+        }
+        return false;
+    }
+
+    /** Checks if the file is tracked in the current commit. */
+    private static boolean checkFileInCurrentCommit(File file) {
+        String currentCommitID = readContentsAsString(HEAD);
+        Commit currentCommit = Commit.getFromFile(currentCommitID);
+        if (currentCommit.blobProjection.containsKey(file.getPath())) {
+            return true;
         }
         return false;
     }

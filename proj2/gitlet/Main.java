@@ -24,9 +24,9 @@ public class Main {
                 validNumArgs(args, 2);
                 Repository.addCommand(args[1]);
                 break;
-                // TODO: Add all the rest of the commands here.
-            // TODO: If .gitlet does not exit, and user's input requires .gitlet,
-            //  print error msseage and exit (Maybe put this elsewhere?)
+            case "commit":
+                validNumArgs(args, 2);
+                Repository.commitCommand(args[1]);
             default:
                 System.out.println("No command with that name exists.");
                 System.exit(0);
