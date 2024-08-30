@@ -198,7 +198,30 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
 
     @Override
     public Iterator<K> iterator() {
-        return keySet.iterator();
+        return new MHMIterator();
+    }
+
+    private class MHMIterator implements Iterator {
+        private List<Node> lst;
+
+        public MHMIterator() {
+            lst = new ArrayList<>();
+            for (Collection<Node> items : buckets) {
+                for (Node node : items) {
+                    lst.add(node);
+                }
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            return lst.size() != 0;
+        }
+
+        @Override
+        public Object next() {
+            return lst.remove(0);
+        }
     }
 
 }
