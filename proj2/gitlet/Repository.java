@@ -430,6 +430,12 @@ public class Repository {
 
     public static void checkoutCommand2(String commitID, String filename) {
         checkGitletDir();
+        List<String> nameList = plainFilenamesIn(COMMIT_FOLDER);
+        assert nameList != null;
+        if (!nameList.contains(commitID)) {
+            System.out.println("No commit with that id exists.");
+            System.exit(0);
+        }
         if (commitID.length() >= 40) {
             Commit commit = Commit.getFromFile(commitID);
             checkoutCommandHelper(filename, commit);
@@ -491,6 +497,13 @@ public class Repository {
         Stage removeStage = Stage.getFromFile("removeStage");
         addStage.stageBlobMap.clear();
         removeStage.stageBlobMap.clear();
+        // Set new current Branch and current HEAD.
+        HEAD.delete();
+        createNewFile(HEAD);
+        writeContents(HEAD, head.id);
+        BRANCH.delete();
+        createNewFile(BRANCH);
+        writeContents(BRANCH, branchName);
     }
 
 

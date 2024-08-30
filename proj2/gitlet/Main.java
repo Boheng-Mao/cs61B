@@ -84,14 +84,14 @@ public class Main {
             if (Objects.equals(args[1], "--")) {
                 Repository.checkoutCommand1(args[2]);
             } else {
-                System.out.println("No command with that name exists.");
+                System.out.println("Incorrect operands.");
                 System.exit(0);
             }
         } else if (args.length == 4) {
             if (Objects.equals(args[2], "--")) {
                 Repository.checkoutCommand2(args[1], args[3]);
             } else {
-                System.out.println("No command with that name exists.");
+                System.out.println("Incorrect operands.");
                 System.exit(0);
             }
         } else if (args.length == 2) {
