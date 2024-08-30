@@ -507,6 +507,33 @@ public class Repository {
         return false;
     }
 
+    public static void resetCommand(String commitID) {
+        List<String> nameList = plainFilenamesIn(COMMIT_FOLDER);
+        String currentCommitID = readContentsAsString(HEAD);
+        Commit currentCommit = Commit.getFromFile(currentCommitID);
+        assert nameList != null;
+        if (!nameList.contains(commitID)) {
+            System.out.println("No commit with that id exists.");
+            System.exit(0);
+        }
+        Commit commit = Commit.getFromFile(commitID);
+        Set<String> pathSet = commit.blobProjection.keySet();
+        for (String path : pathSet) {
+            File file = new File(path);
+            Blob b = Blob.getFromFIle(commit.blobProjection.get(path));
+            if (file.exists() && untrackedFileInGivenCommit(file, commit)) {
+                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                System.exit(0);
+            }
+            checkoutCommandHelper(file.getName(), commit);
+            if (checkFileInCurrentCommit(file) && untrackedFileInGivenCommit(file, commit)) {
+                file.delete();
+            }
+        }
+        HEAD.delete();
+        createNewFile(HEAD);
+        writeContents(HEAD, commitID);
+    }
 
     /** Checks if the current environment has been initialized a GITLET_DIR
      * if not, return error message and exit. */
