@@ -508,8 +508,6 @@ public class Repository {
 
     public static void resetCommand(String commitID) {
         List<String> nameList = plainFilenamesIn(COMMIT_FOLDER);
-        String currentCommitID = readContentsAsString(HEAD);
-        Commit currentCommit = Commit.getFromFile(currentCommitID);
         assert nameList != null;
         if (!nameList.contains(commitID)) {
             System.out.println("No commit with that id exists.");
@@ -519,7 +517,6 @@ public class Repository {
         Set<String> pathSet = commit.blobProjection.keySet();
         for (String path : pathSet) {
             File file = new File(path);
-            Blob b = Blob.getFromFIle(commit.blobProjection.get(path));
             if (file.exists() && untrackedFileInGivenCommit(file, commit)) {
                 System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
                 System.exit(0);
