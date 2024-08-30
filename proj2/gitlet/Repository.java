@@ -406,7 +406,7 @@ public class Repository {
         Branch branch = Branch.getFromFile(branchName);
         branch.commitID = null;
         File branchFile = join(BRANCH_FOLDER, branchName);
-        restrictedDelete(branchFile);
+        branchFile.delete();
     }
 
     public static void checkoutCommand1(String filename) {
