@@ -2,9 +2,7 @@ package gitlet;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static gitlet.Utils.*;
 
@@ -129,7 +127,6 @@ public class Repository {
     public static void removeCommand(String filename) {
         checkGitletDir();
         File file = join(CWD, filename);
-        Blob b = new Blob(file);
         Stage addStage = Stage.getFromFile("addStage");
         Stage removeStage = Stage.getFromFile("removeStage");
         // if file is staged to add, remove it from addStage.
@@ -139,6 +136,10 @@ public class Repository {
         }
         // if file is in current commit, put it in remove stage and delete it from CWD.
         else if (checkFileInCurrentCommit(file)) {
+            String currentCommitID = readContentsAsString(HEAD);
+            Commit currentCommit = Commit.getFromFile(currentCommitID);
+            String blobID = currentCommit.blobProjection.get(file.getPath());
+            Blob b = Blob.getFromFIle(blobID);
             removeStage.stageBlobMap.put(file.getPath(), b.id);
             removeStage.saveToFile();
             if (file.exists()) {
@@ -210,12 +211,16 @@ public class Repository {
 
     /** Updates the blobProjection in the new commit for files in removeStage. */
     private static void removeUpdate(Commit newCommit, Stage removeStage) {
+        List<String> toRemove = new ArrayList<>();
         for (String removePath : removeStage.stageBlobMap.keySet()) {
             for (String commitPath : newCommit.blobProjection.keySet()) {
                 if (Objects.equals(removePath, commitPath)) {
-                    newCommit.blobProjection.remove(commitPath);
+                    toRemove.add(removePath);
                 }
             }
+        }
+        for (String removePath : toRemove) {
+            newCommit.blobProjection.remove(removePath);
         }
     }
 
