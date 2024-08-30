@@ -34,6 +34,7 @@ public class Main {
             case "rm":
                 validNumArgs(args, 2);
                 Repository.removeCommand(args[1]);
+                break;
             case "log":
                 validNumArgs(args,1);
                 Repository.logCommand();
