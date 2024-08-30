@@ -62,6 +62,9 @@ public class Main {
             case "checkout":
                 checkoutCases(args);
                 break;
+            case "reset":
+                validNumArgs(args, 2);
+                Repository.resetCommand(args[1]);
             default:
                 System.out.println("No command with that name exists.");
                 System.exit(0);

@@ -1,6 +1,5 @@
 package gitlet;
 
-import javax.swing.*;
 import java.io.File;
 import java.util.*;
 
