@@ -470,12 +470,14 @@ public class Repository {
     private static void checkout3BranchHelper(String branchName) {
         Branch givenBranch = Branch.getFromFile(branchName);
         Commit head = Commit.getFromFile(givenBranch.commitID);
+        Branch currentBranch = Branch.getFromFile(readContentsAsString(BRANCH));
+        Commit currentHead = Commit.getFromFile(currentBranch.commitID);
         Set<String> filePathSet = head.blobProjection.keySet();
         // Iterate over all files in head commit and puts them in CWD, overwriting if needed .
         for (String filepath : filePathSet) {
             File file = new File(filepath);
             Blob b = Blob.getFromFIle(head.blobProjection.get(filepath));
-            if (file.exists() && untrackedFileInGivenCommit(file, head)) {
+            if (file.exists() && untrackedFileInGivenCommit(file, currentHead)) {
                 System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
                 System.exit(0);
             }
@@ -483,8 +485,6 @@ public class Repository {
         }
         // Any files that are tracked in the current branch
         // but are not present in the checked-out branch are deleted.
-        Branch currentBranch = Branch.getFromFile(readContentsAsString(BRANCH));
-        Commit currentHead = Commit.getFromFile(currentBranch.commitID);
         Set<String> currentPathSet = currentHead.blobProjection.keySet();
         for (String currentFilePath : currentPathSet) {
             File file = new File(currentFilePath);
