@@ -258,10 +258,10 @@ public class Repository {
                 System.out.println(currentCommit.id);
                 found = true;
             }
-            if (!found) {
-                System.out.println("Found no commit with that message.");
-                System.exit(0);
-            }
+        }
+        if (!found) {
+            System.out.println("Found no commit with that message.");
+            System.exit(0);
         }
     }
 
