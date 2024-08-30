@@ -497,6 +497,8 @@ public class Repository {
         Stage removeStage = Stage.getFromFile("removeStage");
         addStage.stageBlobMap.clear();
         removeStage.stageBlobMap.clear();
+        addStage.saveToFile();
+        removeStage.saveToFile();
         // Set new current Branch and current HEAD.
         HEAD.delete();
         createNewFile(HEAD);
@@ -521,6 +523,8 @@ public class Repository {
 
     public static void resetCommand(String commitID) {
         List<String> nameList = plainFilenamesIn(COMMIT_FOLDER);
+        Branch currentBranch = Branch.getFromFile(readContentsAsString(BRANCH));
+        Commit currentHead = Commit.getFromFile(currentBranch.commitID);
         assert nameList != null;
         if (!nameList.contains(commitID)) {
             System.out.println("No commit with that id exists.");
@@ -530,18 +534,33 @@ public class Repository {
         Set<String> pathSet = commit.blobProjection.keySet();
         for (String path : pathSet) {
             File file = new File(path);
-            if (file.exists() && untrackedFileInGivenCommit(file, commit)) {
+            if (file.exists() && untrackedFileInGivenCommit(file, currentHead)) {
                 System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
                 System.exit(0);
             }
             checkoutCommandHelper(file.getName(), commit);
-            if (checkFileInCurrentCommit(file) && untrackedFileInGivenCommit(file, commit)) {
+        }
+        Set<String> currentPathSet = currentHead.blobProjection.keySet();
+        for (String currentFilePath : currentPathSet) {
+            File file = new File(currentFilePath);
+            if (!untrackedFileInGivenCommit(file, currentHead) && untrackedFileInGivenCommit(file, commit)) {
                 file.delete();
             }
         }
+        // Change the HEAD pointer.
         HEAD.delete();
         createNewFile(HEAD);
         writeContents(HEAD, commitID);
+        // Change the current BRANCH to point to commit with commitID.
+        currentBranch.commitID = commit.id;
+        currentBranch.saveToFile();
+        // Clear Staging area.
+        Stage addStage = Stage.getFromFile("addStage");
+        Stage removeStage = Stage.getFromFile("removeStage");
+        addStage.stageBlobMap.clear();
+        removeStage.stageBlobMap.clear();
+        addStage.saveToFile();
+        removeStage.saveToFile();
     }
 
     /** Checks if the current environment has been initialized a GITLET_DIR
