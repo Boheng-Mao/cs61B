@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static gitlet.Utils.*;
 
@@ -339,7 +340,7 @@ public class Repository {
         List<String> nameList = plainFilenamesIn(CWD);
         assert nameList != null;
         for (String filename : nameList) {
-            File file = new File(filename);
+            File file = join(CWD, filename);
             if (modificationsNotStaged(file)) {
                 System.out.println(file.getName());
             }
@@ -360,7 +361,7 @@ public class Repository {
         List<String> nameList = plainFilenamesIn(CWD);
         assert nameList != null;
         for (String filename : nameList) {
-            File file = new File(filename);
+            File file = join(CWD, filename);
             if (untrackedFiles(file)) {
                 System.out.println(file.getName());
             }
@@ -404,22 +405,101 @@ public class Repository {
 
     public void checkoutCommand1(String filename) {
         checkGitletDir();
+        String currentCommitID = readContentsAsString(HEAD);
+        Commit currentCommit = Commit.getFromFile(currentCommitID);
+        checkoutCommandHelper(filename, currentCommit);
+    }
+
+    /** Checkout the file with given filename in the given commit. */
+    private void checkoutCommandHelper(String filename, Commit commit) {
         File file = join(CWD, filename);
-        if (!checkFileInCurrentCommit(file)) {
+        if (!commit.blobProjection.containsKey(file.getPath())) {
             System.out.println("File does not exist in that commit.");
             System.exit(0);
         }
-        String currentCommitID = readContentsAsString(HEAD);
-        Commit currentCommit = Commit.getFromFile(currentCommitID);
-        String blobID = currentCommit.blobProjection.get(file.getPath());
+        String blobID = commit.blobProjection.get(file.getPath());
         Blob b = Blob.getFromFIle(blobID);
         writeContents(file, (Object) b.byteContent);
     }
 
     public void checkoutCommand2(String commitID, String filename) {
         checkGitletDir();
-        
+        if (commitID.length() >= 40) {
+            Commit commit = Commit.getFromFile(commitID);
+            checkoutCommandHelper(filename, commit);
+        } else {
+            List<String> idList = plainFilenamesIn(COMMIT_FOLDER);
+            String shortCommitID = commitID.substring(0, 6);
+            assert idList != null;
+            for (String id : idList) {
+                Commit currentCommit = Commit.getFromFile(id);
+                if (Objects.equals(currentCommit.id, shortCommitID)) {
+                    checkoutCommandHelper(filename, currentCommit);
+                }
+            }
+        }
     }
+
+    public void checkoutCommand3(String branchName) {
+        checkGitletDir();
+        if (!checkBranchExists(branchName)) {
+            System.out.println("No such branch exists.");
+            System.exit(0);
+        }
+        String currentBranchName = readContentsAsString(BRANCH);
+        if (currentBranchName.equals(branchName)) {
+            System.out.println("No need to checkout the current branch.");
+            System.exit(0);
+        }
+        checkout3BranchHelper(branchName);
+    }
+
+    /** Perform checkout command given a branch. */
+    private void checkout3BranchHelper(String branchName) {
+        Branch givenBranch = Branch.getFromFile(branchName);
+        Commit head = Commit.getFromFile(givenBranch.commitID);
+        Set<String> filePathSet = head.blobProjection.keySet();
+        // Iterate over all files in head commit and puts them in CWD, overwriting if needed .
+        for (String filepath : filePathSet) {
+            File file = new File(filepath);
+            Blob b = Blob.getFromFIle(head.blobProjection.get(filepath));
+            if (file.exists() && untrackedFileInGivenCommit(file, head)) {
+                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                System.exit(0);
+            }
+            writeContents(file, (Object) b.byteContent);
+        }
+        // Any files that are tracked in the current branch
+        // but are not present in the checked-out branch are deleted.
+        Branch currentBranch = Branch.getFromFile(readContentsAsString(BRANCH));
+        Commit currentHead = Commit.getFromFile(currentBranch.commitID);
+        Set<String> currentPathSet = currentHead.blobProjection.keySet();
+        for (String currentFilePath : currentPathSet) {
+            File file = new File(currentFilePath);
+            if (!untrackedFileInGivenCommit(file, currentHead) && untrackedFileInGivenCommit(file, head)) {
+                file.delete();
+            }
+        }
+        // Clear Staging area.
+        Stage addStage = Stage.getFromFile("addStage");
+        Stage removeStage = Stage.getFromFile("removeStage");
+        addStage.stageBlobMap.clear();
+        removeStage.stageBlobMap.clear();
+    }
+
+
+    /** Check if branch with name branchName exists. */
+    private boolean checkBranchExists(String branchName) {
+        List<String> nameList = plainFilenamesIn(BRANCH_FOLDER);
+        assert nameList != null;
+        for (String name : nameList) {
+            if (Objects.equals(name, branchName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     /** Checks if the current environment has been initialized a GITLET_DIR
      * if not, return error message and exit. */
@@ -454,6 +534,21 @@ public class Repository {
         String currentCommitID = readContentsAsString(HEAD);
         Commit currentCommit = Commit.getFromFile(currentCommitID);
         if (currentCommit.blobProjection.containsKey(file.getPath())) {
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean checkFileInGivenCommit(File file, Commit commit) {
+        if (commit.blobProjection.containsKey(file.getPath())) {
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean untrackedFileInGivenCommit(File file, Commit commit) {
+        Stage addStage = Stage.getFromFile("addStage");
+        if (!addStage.stageBlobMap.containsKey(file.getPath()) && !checkFileInGivenCommit(file, commit)) {
             return true;
         }
         return false;
