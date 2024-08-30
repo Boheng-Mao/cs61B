@@ -113,17 +113,17 @@ public class Repository {
             addStage.saveToFile();
         }
         // if file is in remove stage, delete file from removeStage and put it to addStage.
-        else if (removeStage.stageBlobMap.containsKey(file.getPath())) {
+        if (removeStage.stageBlobMap.containsKey(file.getPath())) {
             removeStage.stageBlobMap.remove(file.getPath());
             removeStage.saveToFile();
+            b.saveToFile();
+        }
+        // Else, add the file to the addStage.
+        if (!checkSameFile(file, b) && !removeStage.stageBlobMap.containsKey(file.getPath())) {
             addStage.stageBlobMap.put(file.getPath(), b.id);
             addStage.saveToFile();
             b.saveToFile();
         }
-        // Else, add the file to the addStage.
-        addStage.stageBlobMap.put(file.getPath(), b.id);
-        addStage.saveToFile();
-        b.saveToFile();
     }
 
     public static void removeCommand(String filename) {
@@ -136,12 +136,11 @@ public class Repository {
         if (addStage.stageBlobMap.containsKey(file.getPath())) {
             addStage.stageBlobMap.remove(file.getPath());
             addStage.saveToFile();
-            removeStage.stageBlobMap.put(file.getPath(), b.id);
-            removeStage.saveToFile();
         }
         // if file is in current commit, put it in remove stage and delete it from CWD.
         else if (checkFileInCurrentCommit(file)) {
             removeStage.stageBlobMap.put(file.getPath(), b.id);
+            removeStage.saveToFile();
             if (file.exists()) {
                 restrictedDelete(filename);
             }
@@ -163,7 +162,7 @@ public class Repository {
             System.out.println("No changes added to the commit.");
             System.exit(0);
         }
-        if (message == null) {
+        if (Objects.equals(message, "")) {
             System.out.println("Please enter a commit message.");
             System.exit(0);
         }
@@ -266,9 +265,12 @@ public class Repository {
         printBranch();
         printStageFiles();
         printRemovedFiles();
-        printModificationsNotStaged();
-        printUntrackedFiles();
+        System.out.println("=== Modifications Not Staged For Commit ===");
         System.out.println();
+        System.out.println("=== Untracked Files ===");
+        System.out.println();
+        //printModificationsNotStaged();
+        //printUntrackedFiles();
     }
 
     public static void printBranch() {
