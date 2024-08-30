@@ -1,6 +1,7 @@
 package gitlet;
 
 
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
@@ -57,6 +58,9 @@ public class Main {
                 validNumArgs(args, 2);
                 Repository.rmBranchCommand(args[1]);
                 break;
+            case "checkout":
+                checkoutCases(args);
+                break;
             default:
                 System.out.println("No command with that name exists.");
                 System.exit(0);
@@ -69,4 +73,28 @@ public class Main {
             System.exit(0);
         }
     }
+
+    private static void checkoutCases(String[] args) {
+        if (args.length == 3) {
+            if (Objects.equals(args[1], "--")) {
+                Repository.checkoutCommand1(args[2]);
+            } else {
+                System.out.println("No command with that name exists.");
+                System.exit(0);
+            }
+        } else if (args.length == 4) {
+            if (Objects.equals(args[2], "--")) {
+                Repository.checkoutCommand2(args[1], args[3]);
+            } else {
+                System.out.println("No command with that name exists.");
+                System.exit(0);
+            }
+        } else if (args.length == 2) {
+            Repository.checkoutCommand3(args[1]);
+        } else {
+            System.out.println("No command with that name exists.");
+            System.exit(0);
+        }
+    }
+
 }

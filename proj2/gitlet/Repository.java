@@ -403,7 +403,7 @@ public class Repository {
         restrictedDelete(branchFile);
     }
 
-    public void checkoutCommand1(String filename) {
+    public static void checkoutCommand1(String filename) {
         checkGitletDir();
         String currentCommitID = readContentsAsString(HEAD);
         Commit currentCommit = Commit.getFromFile(currentCommitID);
@@ -411,7 +411,7 @@ public class Repository {
     }
 
     /** Checkout the file with given filename in the given commit. */
-    private void checkoutCommandHelper(String filename, Commit commit) {
+    private static void checkoutCommandHelper(String filename, Commit commit) {
         File file = join(CWD, filename);
         if (!commit.blobProjection.containsKey(file.getPath())) {
             System.out.println("File does not exist in that commit.");
@@ -422,7 +422,7 @@ public class Repository {
         writeContents(file, (Object) b.byteContent);
     }
 
-    public void checkoutCommand2(String commitID, String filename) {
+    public static void checkoutCommand2(String commitID, String filename) {
         checkGitletDir();
         if (commitID.length() >= 40) {
             Commit commit = Commit.getFromFile(commitID);
@@ -440,7 +440,7 @@ public class Repository {
         }
     }
 
-    public void checkoutCommand3(String branchName) {
+    public static void checkoutCommand3(String branchName) {
         checkGitletDir();
         if (!checkBranchExists(branchName)) {
             System.out.println("No such branch exists.");
@@ -455,7 +455,7 @@ public class Repository {
     }
 
     /** Perform checkout command given a branch. */
-    private void checkout3BranchHelper(String branchName) {
+    private static void checkout3BranchHelper(String branchName) {
         Branch givenBranch = Branch.getFromFile(branchName);
         Commit head = Commit.getFromFile(givenBranch.commitID);
         Set<String> filePathSet = head.blobProjection.keySet();
@@ -489,7 +489,7 @@ public class Repository {
 
 
     /** Check if branch with name branchName exists. */
-    private boolean checkBranchExists(String branchName) {
+    private static boolean checkBranchExists(String branchName) {
         List<String> nameList = plainFilenamesIn(BRANCH_FOLDER);
         assert nameList != null;
         for (String name : nameList) {
