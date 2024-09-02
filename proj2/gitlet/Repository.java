@@ -598,10 +598,20 @@ public class Repository {
             if (resultVersion.equals("Conflict")) {
                 conflictEncountered = true;
                 File f = new File(filepath);
-                byte[] currentByteContent = Blob.getFromFIle(currentCommit.blobProjection.get(filepath)).byteContent;
-                String currentContent = new String(currentByteContent, StandardCharsets.UTF_8);
-                byte[] branchByteContent = Blob.getFromFIle(branchCommit.blobProjection.get(filepath)).byteContent;
-                String branchContent = new String(branchByteContent, StandardCharsets.UTF_8);
+                String currentContent;
+                String branchContent;
+                if (currentCommit.blobProjection.containsKey(filepath)) {
+                    byte[] currentByteContent = Blob.getFromFIle(currentCommit.blobProjection.get(filepath)).byteContent;
+                    currentContent = new String(currentByteContent, StandardCharsets.UTF_8);
+                } else {
+                    currentContent = "";
+                }
+                if (branchCommit.blobProjection.containsKey(filepath)) {
+                    byte[] branchByteContent = Blob.getFromFIle(branchCommit.blobProjection.get(filepath)).byteContent;
+                    branchContent = new String(branchByteContent, StandardCharsets.UTF_8);
+                } else {
+                    branchContent = "";
+                }
                 String output = "<<<<<<< HEAD\n" + currentContent + "=======\n" + branchContent + ">>>>>>>\n";
                 if (f.exists()) {
                     f.delete();
