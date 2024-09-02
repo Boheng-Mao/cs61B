@@ -1,7 +1,5 @@
 package gitlet;
 
-import org.antlr.v4.runtime.tree.Tree;
-
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -619,11 +617,6 @@ public class Repository {
                 File f = new File(filepath);
                 if (currentCommit.blobProjection.containsKey(filepath)) {
                     Blob blob = Blob.getFromFIle(currentCommit.blobProjection.get(filepath));
-                    if (f.exists()) {
-                        f.delete();
-                    }
-                    createNewFile(f);
-                    writeContents(f, (Object) blob.byteContent);
                     addStage.stageBlobMap.put(f.getPath(), blob.id);
                     addStage.saveToFile();
                 } else {
@@ -635,11 +628,6 @@ public class Repository {
                 File f = new File(filepath);
                 if (branchCommit.blobProjection.containsKey(filepath)) {
                     Blob blob = Blob.getFromFIle(branchCommit.blobProjection.get(filepath));
-                    if (f.exists()) {
-                        f.delete();
-                    }
-                    createNewFile(f);
-                    writeContents(f, (Object) blob.byteContent);
                     addStage.stageBlobMap.put(f.getPath(), blob.id);
                     addStage.saveToFile();
                 } else {
@@ -648,6 +636,15 @@ public class Repository {
                 }
             }
             untrackedFileInWay(filepath);
+        }
+        for (String path : addStage.stageBlobMap.keySet()) {
+            File f = new File(path);
+            Blob b = Blob.getFromFIle(addStage.stageBlobMap.get(path));
+            writeContents(f, (Object) b.byteContent);
+        }
+        for (String path : removeStage.stageBlobMap.keySet()) {
+            File f = new File(path);
+            f.delete();
         }
         mergeCommit(branchName);
         if (conflictEncountered) {
