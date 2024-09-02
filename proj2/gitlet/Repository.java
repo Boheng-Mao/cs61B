@@ -572,8 +572,15 @@ public class Repository {
 
     public static void mergeCommand(String branchName) {
         checkGitletDir();
+        // Get the addStage and removeStage
+        Stage addStage = Stage.getFromFile("addStage");
+        Stage removeStage = Stage.getFromFile("removeStage");
         filePresentForStage();
         if (!checkBranchExists(branchName)) {
+            addStage.stageBlobMap.clear();
+            removeStage.stageBlobMap.clear();
+            addStage.saveToFile();
+            removeStage.saveToFile();
             System.out.println("A branch with that name does not exist.");
             System.exit(0);
         }
@@ -583,9 +590,6 @@ public class Repository {
         Commit splitCommit = findSplitPoint(branchName);
         Commit branchCommit = Commit.getFromFile(Branch.getFromFile(branchName).commitID);
         Commit currentCommit = Commit.getFromFile(readContentsAsString(HEAD));
-        // Get the addStage and removeStage
-        Stage addStage = Stage.getFromFile("addStage");
-        Stage removeStage = Stage.getFromFile("removeStage");
         // Create a list with all the paths of files recorded in these three commits.
         Set<String> filePathList = new TreeSet<>();
         filePathList.addAll(splitCommit.blobProjection.keySet());
@@ -708,6 +712,10 @@ public class Repository {
         Stage addStage = Stage.getFromFile("addStage");
         Stage removeStage = Stage.getFromFile("removeStage");
         if (!addStage.stageBlobMap.isEmpty() || !removeStage.stageBlobMap.isEmpty()) {
+            addStage.stageBlobMap.clear();
+            removeStage.stageBlobMap.clear();
+            addStage.saveToFile();
+            removeStage.saveToFile();
             System.out.println("You have uncommitted changes.");
             System.exit(0);
         }
@@ -715,7 +723,13 @@ public class Repository {
 
     /** Checks if attempting to merge a branch with itself. */
     private static void mergeWithItself(String branchName) {
+        Stage addStage = Stage.getFromFile("addStage");
+        Stage removeStage = Stage.getFromFile("removeStage");
         if (Objects.equals(branchName, readContentsAsString(BRANCH))) {
+            addStage.stageBlobMap.clear();
+            removeStage.stageBlobMap.clear();
+            addStage.saveToFile();
+            removeStage.saveToFile();
             System.out.println("Cannot merge a branch with itself.");
             System.exit(0);
         }
