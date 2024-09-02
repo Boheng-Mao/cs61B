@@ -1,6 +1,9 @@
 package gitlet;
 
+import org.antlr.v4.runtime.tree.Tree;
+
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static gitlet.Utils.*;
@@ -569,6 +572,261 @@ public class Repository {
         removeStage.saveToFile();
     }
 
+    public static void mergeCommand(String branchName) {
+        checkGitletDir();
+        filePresentForStage();
+        if (!checkBranchExists(branchName)) {
+            System.out.println("A branch with that name does not exist.");
+            System.exit(0);
+        }
+        mergeWithItself(branchName);
+        easyMerge(branchName);
+        // Get the three commits
+        Commit splitCommit = findSplitPoint(branchName);
+        Commit branchCommit = Commit.getFromFile(Branch.getFromFile(branchName).commitID);
+        Commit currentCommit = Commit.getFromFile(readContentsAsString(HEAD));
+        // Get the addStage and removeStage
+        Stage addStage = Stage.getFromFile("addStage");
+        Stage removeStage = Stage.getFromFile("removeStage");
+        // Create a list with all the paths of files recorded in these three commits.
+        Set<String> filePathList = new TreeSet<>();
+        filePathList.addAll(splitCommit.blobProjection.keySet());
+        filePathList.addAll(branchCommit.blobProjection.keySet());
+        filePathList.addAll(currentCommit.blobProjection.keySet());
+        // Iterate through all the files, determine the output result of merge on that file.
+        boolean conflictEncountered = false;
+        for (String filepath : filePathList) {
+            String resultVersion = fileResult(branchName, filepath);
+            if (resultVersion.equals("Conflict")) {
+                conflictEncountered = true;
+                File f = new File(filepath);
+                byte[] currentByteContent = Blob.getFromFIle(currentCommit.blobProjection.get(filepath)).byteContent;
+                String currentContent = new String(currentByteContent, StandardCharsets.UTF_8);
+                byte[] branchByteContent = Blob.getFromFIle(branchCommit.blobProjection.get(filepath)).byteContent;
+                String branchContent = new String(branchByteContent, StandardCharsets.UTF_8);
+                String output = "<<<<<<< HEAD\n" + currentContent + "=======\n" + branchContent + ">>>>>>>\n";
+                if (f.exists()) {
+                    f.delete();
+                }
+                createNewFile(f);
+                writeContents(f, output);
+                Blob blob = new Blob(f);
+                blob.saveToFile();
+                addStage.stageBlobMap.put(f.getPath(), blob.id);
+                addStage.saveToFile();
+            }
+            else if (resultVersion.equals("Current")) {
+                File f = new File(filepath);
+                if (currentCommit.blobProjection.containsKey(filepath)) {
+                    Blob blob = Blob.getFromFIle(currentCommit.blobProjection.get(filepath));
+                    if (f.exists()) {
+                        f.delete();
+                    }
+                    createNewFile(f);
+                    writeContents(f, (Object) blob.byteContent);
+                    addStage.stageBlobMap.put(f.getPath(), blob.id);
+                    addStage.saveToFile();
+                } else {
+                    removeStage.stageBlobMap.put(filepath, branchCommit.blobProjection.get(filepath));
+                    removeStage.saveToFile();
+                }
+            }
+            else if (resultVersion.equals("Branch")) {
+                File f = new File(filepath);
+                if (branchCommit.blobProjection.containsKey(filepath)) {
+                    Blob blob = Blob.getFromFIle(branchCommit.blobProjection.get(filepath));
+                    if (f.exists()) {
+                        f.delete();
+                    }
+                    createNewFile(f);
+                    writeContents(f, (Object) blob.byteContent);
+                    addStage.stageBlobMap.put(f.getPath(), blob.id);
+                    addStage.saveToFile();
+                } else {
+                    removeStage.stageBlobMap.put(filepath, currentCommit.blobProjection.get(filepath));
+                    removeStage.saveToFile();
+                }
+            }
+            untrackedFileInWay(filepath);
+        }
+        mergeCommit(branchName);
+        if (conflictEncountered) {
+            System.out.println("Encountered a merge conflict.");
+        }
+    }
+
+    /** A separate easy case for merging. */
+    private static void easyMerge(String branchName) {
+        Commit splitCommit = findSplitPoint(branchName);
+        Commit branchCommit = Commit.getFromFile(Branch.getFromFile(branchName).commitID);
+        Commit currentCommit = Commit.getFromFile(readContentsAsString(HEAD));
+        if (splitCommit.id.equals(branchCommit.id)) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+            System.exit(0);
+        }
+        else if (splitCommit.id.equals(currentCommit.id)) {
+            checkoutCommand3(branchName);
+            System.out.println("Current branch fast-forwarded.");
+            System.exit(0);
+        }
+    }
+
+    /** Create a new commit for merging. */
+    private static void mergeCommit(String branchName) {
+        Stage addStage = Stage.getFromFile("addStage");
+        Stage removeStage = Stage.getFromFile("removeStage");
+        String message = "Merged " + branchName + " into " + readContentsAsString(BRANCH) + ".";
+        Commit mergeCommit = new Commit(message, Commit.getFromFile(readContentsAsString(HEAD)));
+        addUpdate(mergeCommit, addStage);
+        removeUpdate(mergeCommit, removeStage);
+        // Add the second parent into the parentList's second position.
+        mergeCommit.parentList.add(Branch.getFromFile(branchName).commitID);
+        mergeCommit.saveToFile();
+        // Edit the HEAD pointer.
+        createNewFile(HEAD);
+        writeContents(HEAD, mergeCommit.id);
+        // Clear the Stages and safe the changes
+        addStage.stageBlobMap.clear();
+        removeStage.stageBlobMap.clear();
+        addStage.saveToFile();
+        removeStage.saveToFile();
+        // Update the branch and safe the changes.
+        Branch currentBranch = Branch.getFromFile(readContentsAsString(BRANCH));
+        currentBranch.commitID = mergeCommit.id;
+        currentBranch.saveToFile();
+    }
+
+    /** Checks if there are any files in addStage or removeStage. */
+    private static void filePresentForStage() {
+        Stage addStage = Stage.getFromFile("addStage");
+        Stage removeStage = Stage.getFromFile("removeStage");
+        if (!addStage.stageBlobMap.isEmpty() || !removeStage.stageBlobMap.isEmpty()) {
+            System.out.println("You have uncommitted changes.");
+            System.exit(0);
+        }
+    }
+
+    /** Checks if attempting to merge a branch with itself. */
+    private static void mergeWithItself(String branchName) {
+        if (Objects.equals(branchName, readContentsAsString(BRANCH))) {
+            System.out.println("Cannot merge a branch with itself.");
+            System.exit(0);
+        }
+    }
+
+    /** Checks if an untracked file in the current commit
+     * would be overwritten or deleted by the merge. */
+    private static void untrackedFileInWay(String filepath) {
+        Commit currentCommit = Commit.getFromFile(readContentsAsString(HEAD));
+        File f = new File(filepath);
+        Stage addStage = Stage.getFromFile("addStage");
+        Stage removeStage = Stage.getFromFile("removeStage");
+        if (f.exists() && !checkFileInCurrentCommit(f)) {
+            if (addStage.stageBlobMap.containsKey(filepath) || removeStage.stageBlobMap.containsKey(filepath)) {
+                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                System.exit(0);
+            }
+        }
+    }
+
+    /** Helper method that determines the result version after merge on file with filepath. */
+    private static String fileResult(String branchName, String filepath) {
+        Commit splitCommit = findSplitPoint(branchName);
+        Commit branchCommit = Commit.getFromFile(Branch.getFromFile(branchName).commitID);
+        Commit currentCommit = Commit.getFromFile(readContentsAsString(HEAD));
+        // Check if file exists in these three target commits. If not, set an BlobID of null temporarily.
+        Map<String, String> idMap = new TreeMap<>();    // IDs will be stored in this TreeMap.
+        if (!splitCommit.blobProjection.containsKey(filepath)) {
+            String splitID = null;
+            idMap.put("splitID", splitID);
+        } else {
+            String splitID = splitCommit.blobProjection.get(filepath);
+            idMap.put("splitID", splitID);
+        }
+        if (!branchCommit.blobProjection.containsKey(filepath)) {
+            String branchID = null;
+            idMap.put("branchID", branchID);
+        } else {
+            String branchID = branchCommit.blobProjection.get(filepath);
+            idMap.put("branchID", branchID);
+        }
+        if (!currentCommit.blobProjection.containsKey(filepath)) {
+            String currentID = null;
+            idMap.put("currentID", currentID);
+        } else {
+            String currentID = currentCommit.blobProjection.get(filepath);
+            idMap.put("currentID", currentID);
+        }
+        // Find the result of version of file after merge.
+        // If none of the ids are the same, this is a merge conflict for this file.
+        if (!idMap.get("splitID").equals(idMap.get("branchID"))
+                && !idMap.get("branchID").equals(idMap.get("currentID"))
+                && !idMap.get("currentID").equals(idMap.get("splitID"))) {
+            return "Conflict";
+        }
+        // If all of them are the same, there are nothing to change for this file after merge.
+        else if (idMap.get("splitID").equals(idMap.get("branchID"))
+                && idMap.get("branchID").equals(idMap.get("currentID"))
+                && idMap.get("currentID").equals(idMap.get("splitID"))) {
+            return "No change";
+        }
+        else {
+            if (idMap.get("splitID").equals(idMap.get("branchID"))
+                    && !idMap.get("branchID").equals(idMap.get("currentID"))) {
+                return "Current";
+            }
+            else if (idMap.get("splitID").equals(idMap.get("currentID"))
+                    && !idMap.get("branchID").equals(idMap.get("currentID"))) {
+                return "Branch";
+            }
+            else {
+                return "No change";
+            }
+        }
+    }
+
+    /** Find the split point of current branch and given branch for the merge command. */
+    private static Commit findSplitPoint(String givenBranchName) {
+        Branch givenBranch = Branch.getFromFile(givenBranchName);
+        Branch currentBranch = Branch.getFromFile(readContentsAsString(BRANCH));
+        Map<String, Integer> routeGivenBranch = findPathToInitialCommit(Commit.getFromFile(givenBranch.commitID));
+        Map<String, Integer> routeCurrentBranch = findPathToInitialCommit(Commit.getFromFile(currentBranch.commitID));
+        String splitCommitID = "";
+        int minValue = Integer.MAX_VALUE;
+        for (String commit: routeGivenBranch.keySet()) {
+            if (routeCurrentBranch.containsKey(commit)) {
+                if (routeCurrentBranch.get(commit) < minValue) {
+                    splitCommitID = commit;
+                    minValue = routeCurrentBranch.get(commit);
+                }
+            }
+        }
+        return Commit.getFromFile(splitCommitID);
+    }
+
+    /** Returns a map that contains paths from COMMIT to initial Commit. */
+    /** The key is the Commit ids in the paths, the value is the distance from COMMIT. */
+    private static Map<String, Integer> findPathToInitialCommit(Commit commit) {
+        Map<String, Integer> route = new TreeMap<>();
+        Queue<String> commitQueue = new ArrayDeque<>();
+        commitQueue.add(commit.id);
+        route.put(commit.id, 0);
+        while (!commitQueue.isEmpty()) {
+            String commitID = commitQueue.poll();
+            Commit currentCommit = Commit.getFromFile(commitID);
+            for (String parentCommit : currentCommit.parentList) {
+                if (route.containsKey(parentCommit)) {
+                    break;
+                } else {
+                    commitQueue.add(parentCommit);
+                    route.put(parentCommit, route.get(commitID) + 1);
+                }
+
+            }
+        }
+        return route;
+    }
+
     /** Checks if the current environment has been initialized a GITLET_DIR
      * if not, return error message and exit. */
     private static void checkGitletDir() {
@@ -621,5 +879,4 @@ public class Repository {
         }
         return false;
     }
-
 }

@@ -35,7 +35,6 @@ public class Commit implements Serializable {
     public List<String> parentList = new ArrayList<>();
     /** A mapping of file paths to blob ids (TreeMap?). */
     public Map<String, String> blobProjection = new TreeMap<>();
-    /** A list containing the blobs in this commit. */
 
     /** Creates the initial commit. */
     public Commit() {
