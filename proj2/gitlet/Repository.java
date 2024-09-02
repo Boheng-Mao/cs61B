@@ -759,24 +759,24 @@ public class Repository {
         }
         // Find the result of version of file after merge.
         // If none of the ids are the same, this is a merge conflict for this file.
-        if (!idMap.get("splitID").equals(idMap.get("branchID"))
-                && !idMap.get("branchID").equals(idMap.get("currentID"))
-                && !idMap.get("currentID").equals(idMap.get("splitID"))) {
+        if (!Objects.equals(idMap.get("splitID"), idMap.get("branchID"))
+                && !Objects.equals(idMap.get("branchID"), idMap.get("currentID"))
+                && !Objects.equals(idMap.get("currentID"), idMap.get("splitID"))) {
             return "Conflict";
         }
         // If all of them are the same, there are nothing to change for this file after merge.
-        else if (idMap.get("splitID").equals(idMap.get("branchID"))
-                && idMap.get("branchID").equals(idMap.get("currentID"))
-                && idMap.get("currentID").equals(idMap.get("splitID"))) {
+        else if (Objects.equals(idMap.get("splitID"), idMap.get("branchID"))
+                && Objects.equals(idMap.get("branchID"), idMap.get("currentID"))
+                && Objects.equals(idMap.get("currentID"), idMap.get("splitID"))) {
             return "No change";
         }
         else {
-            if (idMap.get("splitID").equals(idMap.get("branchID"))
-                    && !idMap.get("branchID").equals(idMap.get("currentID"))) {
+            if (Objects.equals(idMap.get("splitID"), idMap.get("branchID"))
+                    && !Objects.equals(idMap.get("branchID"), idMap.get("currentID"))) {
                 return "Current";
             }
-            else if (idMap.get("splitID").equals(idMap.get("currentID"))
-                    && !idMap.get("branchID").equals(idMap.get("currentID"))) {
+            else if (Objects.equals(idMap.get("splitID"), idMap.get("currentID"))
+                    && !Objects.equals(idMap.get("branchID"), idMap.get("currentID"))) {
                 return "Branch";
             }
             else {
