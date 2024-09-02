@@ -577,10 +577,6 @@ public class Repository {
         Stage removeStage = Stage.getFromFile("removeStage");
         filePresentForStage();
         if (!checkBranchExists(branchName)) {
-            addStage.stageBlobMap.clear();
-            removeStage.stageBlobMap.clear();
-            addStage.saveToFile();
-            removeStage.saveToFile();
             System.out.println("A branch with that name does not exist.");
             System.exit(0);
         }
@@ -712,10 +708,6 @@ public class Repository {
         Stage addStage = Stage.getFromFile("addStage");
         Stage removeStage = Stage.getFromFile("removeStage");
         if (!addStage.stageBlobMap.isEmpty() || !removeStage.stageBlobMap.isEmpty()) {
-            addStage.stageBlobMap.clear();
-            removeStage.stageBlobMap.clear();
-            addStage.saveToFile();
-            removeStage.saveToFile();
             System.out.println("You have uncommitted changes.");
             System.exit(0);
         }
@@ -726,10 +718,6 @@ public class Repository {
         Stage addStage = Stage.getFromFile("addStage");
         Stage removeStage = Stage.getFromFile("removeStage");
         if (Objects.equals(branchName, readContentsAsString(BRANCH))) {
-            addStage.stageBlobMap.clear();
-            removeStage.stageBlobMap.clear();
-            addStage.saveToFile();
-            removeStage.saveToFile();
             System.out.println("Cannot merge a branch with itself.");
             System.exit(0);
         }
@@ -744,6 +732,10 @@ public class Repository {
         Stage removeStage = Stage.getFromFile("removeStage");
         if (f.exists() && !checkFileInCurrentCommit(f)) {
             if (addStage.stageBlobMap.containsKey(filepath) || removeStage.stageBlobMap.containsKey(filepath)) {
+                addStage.stageBlobMap.clear();
+                removeStage.stageBlobMap.clear();
+                addStage.saveToFile();
+                removeStage.saveToFile();
                 System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
                 System.exit(0);
             }
