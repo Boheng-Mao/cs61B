@@ -432,23 +432,29 @@ public class Repository {
         checkGitletDir();
         List<String> nameList = plainFilenamesIn(COMMIT_FOLDER);
         assert nameList != null;
-        if (!nameList.contains(commitID)) {
-            System.out.println("No commit with that id exists.");
-            System.exit(0);
-        }
-        if (commitID.length() >= 40) {
-            Commit commit = Commit.getFromFile(commitID);
-            checkoutCommandHelper(filename, commit);
-        } else {
-            List<String> idList = plainFilenamesIn(COMMIT_FOLDER);
-            String shortCommitID = commitID.substring(0, 6);
-            assert idList != null;
-            for (String id : idList) {
-                Commit currentCommit = Commit.getFromFile(id);
-                if (Objects.equals(currentCommit.id, shortCommitID)) {
-                    checkoutCommandHelper(filename, currentCommit);
+        if (commitID.length() < 40) {
+            boolean exist = false;
+            for (String id : nameList) {
+                String idShort = id.substring(0, commitID.length());
+                if (idShort.equals(commitID)) {
+                    exist = true;
+                    Commit commit = Commit.getFromFile(id);
+                    checkoutCommandHelper(filename, commit);
+                    break;
                 }
             }
+            if (!exist) {
+                System.out.println("No commit with that id exists.");
+                System.exit(0);
+            }
+        }
+        else {
+            if (!nameList.contains(commitID)) {
+                System.out.println("No commit with that id exists.");
+                System.exit(0);
+            }
+            Commit commit = Commit.getFromFile(commitID);
+            checkoutCommandHelper(filename, commit);
         }
     }
 
