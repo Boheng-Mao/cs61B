@@ -4,11 +4,6 @@ Gitlet is a teaching-scale version control system inspired by Git and built in J
 
 Project spec: https://sp21.datastructur.es/materials/proj/proj2/proj2
 
-Resume snapshot (Sep 2024 – Oct 2024):
-- Designed and implemented a Git-style version control system with commit history, branching, checkout, and merge.
-- Persisted repository state with SHA-1 object storage and Java serialization.
-- Managed commit DAGs and branch pointers to support rollback and conflict-aware merging.
-
 ## Repository Structure
 
 - `gitlet/Main.java` – CLI entry point. Parses command-line arguments and dispatches to repository operations.
